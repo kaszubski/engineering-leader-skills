@@ -11,7 +11,7 @@
 
 ## How skills in this collection use it
 
-Conscious Leadership and [[radical-candor]] overlap (candor, care, directness). To avoid repetition, these skills use only the parts Radical Candor *doesn't* cover:
+Conscious Leadership and [Radical Candor](./radical-candor.md) overlap (candor, care, directness). To avoid repetition, these skills use only the parts Radical Candor *doesn't* cover:
 
 1. **Above/below-the-line state check** — before giving feedback or running a retro, name the state: am I curious, or defending being right?
 2. **Facts vs. stories** — every observation is split into the verifiable fact and the interpretation. Stories are allowed, but labelled.
@@ -19,4 +19,4 @@ Conscious Leadership and [[radical-candor]] overlap (candor, care, directness). 
 
 ## Related
 
-Anchors the planned `retro-facilitator` skill (drama triangle → radical responsibility is the core retro move). Cross-references [[radical-candor]].
+Anchors the planned `retro-facilitator` skill (drama triangle → radical responsibility is the core retro move). Cross-references [Radical Candor](./radical-candor.md).

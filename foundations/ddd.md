@@ -21,4 +21,4 @@ Most repositories these skills run on **will not be DDD-designed** — so the le
 
 ## Related
 
-Used most heavily by [[repo-xray]] (Conway lens on silos) and as a secondary lens in `pr-review` (does this change respect the codebase's own model?).
+Used most heavily by the [repo-xray](../skills/repo-xray/SKILL.md) skill (Conway lens on silos), and as a secondary lens in [pr-review](../skills/pr-review/SKILL.md) (does this change respect the codebase's own model?).

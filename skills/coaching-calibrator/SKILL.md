@@ -22,7 +22,7 @@ Match leadership **style** to the person's **development level on that task**:
 | D3 | Moderate–high / Variable (capable, cautious) | S3 Supporting |
 | D4 | High / High (self-reliant) | S4 Delegating |
 
-See [`foundations/slii.md`](../../foundations/slii.md) for the full model.
+See [the SLII foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/slii.md) for the full model.
 
 ## When to use
 

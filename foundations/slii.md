@@ -37,4 +37,4 @@ Match the style to the level: D1→S1, D2→S2, D3→S3, D4→S4.
 
 ## Related
 
-Diagnosis is a feedback act — see [[radical-candor]] for how to deliver what you observe.
+Diagnosis is a feedback act — see [Radical Candor](./radical-candor.md) for how to deliver what you observe.

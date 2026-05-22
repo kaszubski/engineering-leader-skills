@@ -53,7 +53,9 @@ git clone https://github.com/kaszubski/engineering-leader-skills.git
 cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 ```
 
-`repo-xray` additionally needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
+### Requirements
+
+`pr-review` and `coaching-calibrator` have no dependencies. `repo-xray` — with either install method — needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
 
 ## Design principles
 

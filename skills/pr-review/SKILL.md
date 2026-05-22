@@ -18,7 +18,7 @@ Feedback rides two axes: **Care Personally** and **Challenge Directly**. The tar
 - **Ruinous Empathy** — a real defect softened until it reads as "nit:". The most common failure.
 - **Obnoxious Aggression** — an unprioritised pile of criticism.
 
-See [`foundations/radical-candor.md`](../../foundations/radical-candor.md) for the full 2×2.
+See [the Radical Candor foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/radical-candor.md) for the full 2×2.
 
 ## When to use
 
@@ -40,7 +40,7 @@ Assess four areas; ignore style nits:
 
 1. **Coupling** — does this change add hidden dependencies between modules that should stay independent?
 2. **Reviewability** — is the PR small and coherent enough to review *honestly*? A 2,000-line PR gets rubber-stamped.
-3. **Convention drift** — does it respect the codebase's own model and language? (DDD secondary lens — see [`foundations/ddd.md`](../../foundations/ddd.md).)
+3. **Convention drift** — does it respect the codebase's own model and language? (DDD secondary lens — see [the DDD foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/ddd.md).)
 4. **Tests on changed logic** — is new or changed *logic* covered? Not coverage percentage — coverage of the risky lines.
 
 ## Output

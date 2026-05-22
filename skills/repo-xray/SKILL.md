@@ -13,16 +13,22 @@ Reads a repository's git and GitHub PR history and surfaces the signals teams *d
 
 ## Foundation — Domain-Driven Design (Conway lens)
 
-Most repos this runs on are not DDD-designed, so the lens is not "grade against DDD." It is: do the code's boundaries match the team's? A single-author file may be an *intentional* bounded context or *accidental* ownership — that distinction is the insight. See [`foundations/ddd.md`](../../foundations/ddd.md).
+Most repos this runs on are not DDD-designed, so the lens is not "grade against DDD." It is: do the code's boundaries match the team's? A single-author file may be an *intentional* bounded context or *accidental* ownership — that distinction is the insight. See [the DDD foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/ddd.md).
 
 ## When to use
 
 Any request about repo health, team health, code-review bottlenecks, or "what are our metrics missing."
 
+## When not to
+
+Reviewing a single pull request — that's `pr-review`. repo-xray reads *aggregate* history; it is not a substitute for reading the code itself.
+
 ## How it works
 
-1. **Run the script** — `python3 scripts/signals.py --repo <path> --days <N>` (relative to this skill directory). It prints a JSON blob of signals.
-2. **Do not recompute anything.** All counting lives in the script — LLMs miscount. Read its JSON; never re-derive the numbers.
+1. **Run the bundled script.** `signals.py` lives in this skill's own `scripts/` directory — when installed as part of the plugin, the path is `${CLAUDE_PLUGIN_ROOT}/skills/repo-xray/scripts/signals.py`. Run it with the *target* repository as `--repo`:
+   `python3 <skill-scripts-dir>/signals.py --repo <target-repo> --days <N>`
+   `--repo` is the repository being analyzed — usually the user's current project — not where the script lives.
+2. **Do not recompute anything.** All counting lives in the script — LLMs miscount. Read its JSON output; never re-derive the numbers.
 3. **Narrate** the JSON into a health note.
 
 Requires Python 3 and `git`. `gh` is optional — without it, GitHub PR signals are skipped and the script runs git-only.
