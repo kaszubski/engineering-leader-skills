@@ -1,0 +1,13 @@
+{
+  "name": "engineering-leader-skills",
+  "owner": {
+    "name": "Matt Kaszubski"
+  },
+  "plugins": [
+    {
+      "name": "engineering-leader-skills",
+      "source": "./",
+      "description": "Code review, coaching, and repo-health skills for engineering leaders — each anchored on an established framework."
+    }
+  ]
+}
