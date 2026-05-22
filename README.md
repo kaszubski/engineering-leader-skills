@@ -8,7 +8,7 @@ Claude Code skills for engineering managers and tech leads — by [Matt Kaszubsk
 
 A small, curated collection of Claude Code skills for the work of *leading* engineers — reviewing code, coaching people, reading a team's health. Not a grab-bag.
 
-Every skill is anchored on an established framework, operationalised so the framework actually changes the output — and the whole collection shares one vocabulary.
+Most skills are anchored on an established leadership framework, operationalised so the framework actually changes the output. One — `repo-xray` — is the collection's measurement instrument: not framework-anchored, just careful, calibrated measurement. Either way, the collection shares one vocabulary.
 
 The bet: plenty of general-purpose Claude skills exist; almost none are built deliberately *for engineering leaders*. This fills that gap.
 
@@ -18,13 +18,13 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 |---|---|---|
 | `pr-review` | Reviews a PR for what scales or sinks a team — coupling, reviewability, convention drift — not style nits. | Radical Candor |
 | `coaching-calibrator` | Given an engineer and a task, recommends how to coach or delegate it. | Situational Leadership II |
-| `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. | Domain-Driven Design |
+| `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. | Measurement instrument (DDD lens, one signal) |
 
 Roadmap: `retro-facilitator`, anchored on Conscious Leadership.
 
 ## Foundations
 
-Each skill builds on a framework, distilled *for application* in [`foundations/`](./foundations):
+The skills draw on these frameworks, distilled *for application* in [`foundations/`](./foundations):
 
 - [Radical Candor](./foundations/radical-candor.md) — Kim Scott
 - [Situational Leadership II](./foundations/slii.md) — Ken Blanchard

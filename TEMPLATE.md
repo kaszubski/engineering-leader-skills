@@ -22,7 +22,7 @@ description: <what it does + when Claude should invoke it. This is the trigger �
 ## SKILL.md body — sections
 
 1. **Purpose** — one paragraph: what this does, who it's for.
-2. **Foundation** — which framework it anchors on; inline the *operative core* only (the 2×2, the grid). The full canon lives in `foundations/`.
+2. **Foundation** — the framework the skill anchors on, or — for a measurement/instrument skill — the lens it draws on. Inline the *operative core* only (the 2×2, the grid); the full canon lives in `foundations/`.
 3. **When to use / when not to** — keep the trigger sharp.
 4. **How it works** — the steps Claude follows.
 5. **Output** — the exact shape of what the skill produces.

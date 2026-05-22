@@ -11,9 +11,11 @@ description: Analyze a git repository's team-health signals — review concentra
 
 Reads a repository's git and GitHub PR history and surfaces the signals teams *don't* dashboard — then narrates them into a short, calibrated health note. The point is the non-obvious: not commit counts, but where the team is quietly fragile.
 
-## Foundation — Domain-Driven Design (Conway lens)
+Within this collection, repo-xray is the **measurement instrument** — the one skill *not* anchored on a leadership framework. `pr-review` and `coaching-calibrator` operationalise a framework; repo-xray operationalises careful measurement itself.
 
-Most repos this runs on are not DDD-designed, so the lens is not "grade against DDD." It is: do the code's boundaries match the team's? A single-author file may be an *intentional* bounded context or *accidental* ownership — that distinction is the insight. See [the DDD foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/ddd.md).
+## The DDD lens — one signal only
+
+repo-xray is not framework-anchored, and pretending otherwise would be the framework theatre this collection exists to avoid. It uses one lens, in one place: **Domain-Driven Design's Conway's-law thinking**, applied to the *knowledge-silos* signal. A file only one person ever touches may be an *intentional* bounded context (one owner, by design) or *accidental* ownership (a silo, by drift) — naming that distinction is the insight. The other four signals are plain measurement, DDD-free. See [the DDD foundation](https://github.com/kaszubski/engineering-leader-skills/blob/main/foundations/ddd.md) for the lens.
 
 ## When to use
 
