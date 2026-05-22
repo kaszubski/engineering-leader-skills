@@ -8,8 +8,6 @@ Usage:
     python3 signals.py [--repo PATH] [--days N]
 
 Requires: git (always). gh (optional — GitHub PR signals degrade gracefully).
-
-Status: v0.1 — scaffolding complete; signal computations are TODO.
 """
 from __future__ import annotations
 
@@ -17,7 +15,11 @@ import argparse
 import json
 import subprocess
 import sys
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
+from statistics import median
+
+STALE_DAYS = 14  # a PR open longer than this before merge counts as stale
 
 
 def run(cmd: list[str], cwd: str) -> str | None:
@@ -35,30 +37,60 @@ def gh_available(cwd: str) -> bool:
     return run(["gh", "auth", "status"], cwd) is not None
 
 
+def parse_iso(value: object) -> datetime | None:
+    """Parse an ISO-8601 timestamp (handles a trailing 'Z')."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def severity(ratio: float, watch: float, concern: float) -> str:
+    """Map a ratio to a severity band."""
+    if ratio >= concern:
+        return "concern"
+    if ratio >= watch:
+        return "watch"
+    return "ok"
+
+
 # --- raw data ---------------------------------------------------------------
 
 def git_log(repo: str, since: str) -> list[dict]:
     """Parse `git log --numstat` since a date into commit records.
 
-    TODO: parse into [{sha, author, date, files: [...]}].
+    Each record: {sha, author, date, files: [path, ...]}.
+    A 'COMMIT' sentinel in the pretty-format makes header lines unambiguous.
     """
     raw = run(
-        ["git", "log", f"--since={since}", "--numstat",
-         "--pretty=format:%H%x09%an%x09%aI"],
+        ["git", "log", "--no-merges", f"--since={since}", "--numstat",
+         "--pretty=format:COMMIT%x09%H%x09%an%x09%aI"],
         repo,
     )
     if raw is None:
         return []
     commits: list[dict] = []
-    # TODO: parse `raw`
+    current: dict | None = None
+    for line in raw.splitlines():
+        if line.startswith("COMMIT\t"):
+            parts = line.split("\t")
+            if len(parts) >= 4:
+                current = {"sha": parts[1], "author": parts[2],
+                           "date": parts[3], "files": []}
+                commits.append(current)
+            else:
+                current = None
+        elif current is not None and line.strip():
+            parts = line.split("\t", 2)  # added, deleted, path
+            if len(parts) == 3:
+                current["files"].append(parts[2])
     return commits
 
 
 def gh_prs(repo: str) -> list[dict]:
-    """Fetch merged PRs with review data via the gh CLI.
-
-    TODO: shape the records the signal functions need.
-    """
+    """Fetch merged PRs (with review data) via the gh CLI."""
     raw = run(
         ["gh", "pr", "list", "--state", "merged", "--limit", "200",
          "--json", "number,author,createdAt,mergedAt,reviews"],
@@ -67,38 +99,146 @@ def gh_prs(repo: str) -> list[dict]:
     if raw is None:
         return []
     try:
-        return json.loads(raw)
+        data = json.loads(raw)
     except json.JSONDecodeError:
         return []
+    return data if isinstance(data, list) else []
 
 
 # --- signals ----------------------------------------------------------------
 # Each returns {value, detail, severity}. severity in {ok, watch, concern}.
-# TODO: implement. Keep ALL counting here — the skill must not recompute.
+# All counting lives here — the skill narrates, it never recomputes.
 
 def signal_knowledge_silos(commits: list[dict]) -> dict:
-    """Files only ever touched by a single author."""
-    return {"value": None, "detail": "TODO", "severity": "ok"}
+    """Actively-changed files touched by only a single author."""
+    authors: dict[str, set[str]] = defaultdict(set)
+    touches: Counter = Counter()
+    for c in commits:
+        for path in c.get("files", []):
+            authors[path].add(c["author"])
+            touches[path] += 1
+
+    active = [p for p in touches if touches[p] >= 2]
+    if not active:
+        return {"value": 0,
+                "detail": "no file changed twice or more in the window",
+                "severity": "ok"}
+
+    silos = [p for p in active if len(authors[p]) == 1]
+    ratio = len(silos) / len(active)
+    detail = (f"{len(silos)} of {len(active)} actively-changed files are "
+              f"single-author ({ratio:.0%})")
+    if silos:
+        top = sorted(silos, key=lambda p: -touches[p])[:3]
+        detail += " — e.g. " + ", ".join(
+            f"{p} ({next(iter(authors[p]))})" for p in top)
+    return {"value": len(silos), "detail": detail,
+            "severity": severity(ratio, 0.25, 0.5)}
 
 
 def signal_review_concentration(prs: list[dict]) -> dict:
-    """Is one person reviewing most PRs?"""
-    return {"value": None, "detail": "TODO", "severity": "ok"}
+    """Whether a single person performs most reviews."""
+    counts: Counter = Counter()
+    for pr in prs:
+        for review in pr.get("reviews") or []:
+            login = (review.get("author") or {}).get("login")
+            if login:
+                counts[login] += 1
+
+    total = sum(counts.values())
+    if total == 0:
+        return {"value": 0, "detail": "no reviews recorded in the window",
+                "severity": "ok"}
+
+    top_login, top_count = counts.most_common(1)[0]
+    share = top_count / total
+    detail = (f"{top_login} did {top_count} of {total} reviews "
+              f"({share:.0%}); {len(counts)} reviewer(s) total")
+    return {"value": round(share, 2), "detail": detail,
+            "severity": severity(share, 0.4, 0.6)}
 
 
 def signal_time_to_first_review(prs: list[dict]) -> dict:
-    """Time from PR open to first review — and its drift over the window."""
-    return {"value": None, "detail": "TODO", "severity": "ok"}
+    """Median time from PR open to first review — plus its drift."""
+    samples: list[tuple[datetime, float]] = []  # (created, hours)
+    for pr in prs:
+        created = parse_iso(pr.get("createdAt"))
+        if not created:
+            continue
+        review_times = [parse_iso(r.get("submittedAt"))
+                        for r in (pr.get("reviews") or [])]
+        review_times = [t for t in review_times if t]
+        if not review_times:
+            continue
+        hours = (min(review_times) - created).total_seconds() / 3600
+        if hours >= 0:
+            samples.append((created, hours))
+
+    if not samples:
+        return {"value": None, "detail": "no reviewed PRs in the window",
+                "severity": "ok"}
+
+    hours_list = [h for _, h in samples]
+    med = median(hours_list)
+    detail = (f"median time to first review: {med:.1f}h "
+              f"across {len(samples)} reviewed PRs")
+
+    if len(samples) >= 6:  # report drift only with enough data
+        ordered = sorted(samples, key=lambda s: s[0])
+        mid = len(ordered) // 2
+        early = median([h for _, h in ordered[:mid]])
+        late = median([h for _, h in ordered[mid:]])
+        if late > early * 1.5:
+            detail += f"; trending slower ({early:.1f}h → {late:.1f}h)"
+        elif early > late * 1.5:
+            detail += f"; trending faster ({early:.1f}h → {late:.1f}h)"
+
+    band = "concern" if med > 72 else "watch" if med > 24 else "ok"
+    return {"value": round(med, 1), "detail": detail, "severity": band}
 
 
 def signal_stale_prs(prs: list[dict]) -> dict:
-    """PRs that sat open well beyond the norm before merge."""
-    return {"value": None, "detail": "TODO", "severity": "ok"}
+    """Merged PRs that sat open well beyond the norm."""
+    ages: list[tuple[object, float]] = []  # (number, days)
+    for pr in prs:
+        created = parse_iso(pr.get("createdAt"))
+        merged = parse_iso(pr.get("mergedAt"))
+        if not created or not merged:
+            continue
+        days = (merged - created).total_seconds() / 86400
+        if days >= 0:
+            ages.append((pr.get("number"), days))
+
+    if not ages:
+        return {"value": 0, "detail": "no merged PRs with dates in the window",
+                "severity": "ok"}
+
+    stale = [(n, d) for n, d in ages if d > STALE_DAYS]
+    ratio = len(stale) / len(ages)
+    detail = (f"{len(stale)} of {len(ages)} merged PRs stayed open "
+              f">{STALE_DAYS}d before merge ({ratio:.0%})")
+    if stale:
+        oldest = sorted(stale, key=lambda x: -x[1])[:3]
+        detail += " — e.g. " + ", ".join(f"#{n} ({d:.0f}d)" for n, d in oldest)
+    return {"value": len(stale), "detail": detail,
+            "severity": severity(ratio, 0.1, 0.3)}
 
 
 def signal_silent_merges(prs: list[dict]) -> dict:
-    """PRs merged with zero review or approval."""
-    return {"value": None, "detail": "TODO", "severity": "ok"}
+    """Merged PRs that had no review at all."""
+    if not prs:
+        return {"value": 0, "detail": "no merged PRs in the window",
+                "severity": "ok"}
+
+    silent = [pr for pr in prs if not (pr.get("reviews") or [])]
+    ratio = len(silent) / len(prs)
+    detail = (f"{len(silent)} of {len(prs)} merged PRs had no review "
+              f"({ratio:.0%})")
+    if silent:
+        nums = [str(pr.get("number")) for pr in silent[:5]]
+        detail += " — e.g. #" + ", #".join(nums)
+    return {"value": len(silent), "detail": detail,
+            "severity": severity(ratio, 0.1, 0.3)}
 
 
 # --- main -------------------------------------------------------------------
@@ -133,7 +273,7 @@ def main() -> int:
     if not has_gh:
         report["note"] = "gh unavailable — GitHub PR signals skipped; git-only mode."
 
-    print(json.dumps(report, indent=2))
+    print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0
 
 

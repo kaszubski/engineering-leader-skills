@@ -5,8 +5,6 @@ description: Analyze a git repository's team-health signals — review concentra
 
 # repo-xray
 
-> **Status: v0.1 draft.** The script `scripts/signals.py` is scaffolded; signal computations are TODO.
-
 ## Purpose
 
 Reads a repository's git and GitHub PR history and surfaces the signals teams *don't* dashboard — then narrates them into a short, calibrated health note. The point is the non-obvious: not commit counts, but where the team is quietly fragile.
