@@ -22,6 +22,55 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 
 Roadmap: `retro-facilitator`, anchored on Conscious Leadership.
 
+## Examples
+
+### `pr-review`
+
+> *"Review PR #42 on owner/repo"*
+
+Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well / Self-check**. Cites `file:line`. Never posts to GitHub — advisory only.
+
+<details>
+<summary>Sample output (real review of a small UX PR)</summary>
+
+```
+**Verdict:** Clean batch. Nothing blocking — one bundling note and two polish items.
+
+**Non-blocking** — worth considering, reviewer's call
+- PR bundles three unrelated concerns. Marquee toggle, justify sweep, and arrow
+  glyph swap have nothing in common except "UX walkthrough output." Small enough
+  to hold in your head here, but the pattern degrades fast if a future "Batch N"
+  puts a 50-line behavior change next to silent CSS edits.
+- `e2e/marquee-toggle.spec.ts:50` — fixed `waitForTimeout(700)` after the pause
+  click. You used `expect.poll` earlier in the same test. Mirror that pattern —
+  the brittle version will flake under CI load.
+
+**Done well**
+- The pause test asserts behavior (`.worked__track-shift` transform stops
+  advancing), not just `aria-pressed`. That's the test that catches a real
+  regression.
+
+**Self-check:** Passes Radical Candor — each item names file/line and a concrete change.
+```
+
+</details>
+
+---
+
+### `coaching-calibrator`
+
+> *"Sarah is moving onto incident response. She handled one ticket before with help, isn't confident yet. How should I support her?"*
+
+Diagnoses **competence and commitment separately**, lands on a development level (D1–D4), then prescribes the matching style (S1 Directing → S4 Delegating) as concrete behaviours for the week. Asks for missing signals rather than guessing a level — SLII is a conversation, not a covert label.
+
+---
+
+### `repo-xray`
+
+> *"Run a repo-health x-ray on this project — last 365 days"*
+
+Runs five signal queries (review concentration, knowledge silos, time-to-first-review, stale PRs, silent merges), then narrates them as a *calibrated* health note. Calibrated meaning: a 66% silent-merge rate on a two-person repo is not a 66% silent-merge rate on a thirty-person team, and the narration says so.
+
 ## Foundations
 
 The skills draw on these frameworks, distilled *for application* in [`foundations/`](./foundations):
