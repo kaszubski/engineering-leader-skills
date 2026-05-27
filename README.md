@@ -2,7 +2,7 @@
 
 Claude Code skills for engineering managers and tech leads — by [Matt Kaszubski](https://github.com/kaszubski).
 
-> **Status: v0.1 — work in progress.** Private while the skills and the voice are still being shaped. Public launch to follow.
+> **Early days — `v0.1.0`.** Expect breaking changes. Triggers and rubrics will sharpen as the skills meet real PRs and real teams. Feedback in Issues welcome.
 
 ## What this is
 
@@ -43,8 +43,6 @@ In Claude Code:
 /plugin marketplace add kaszubski/engineering-leader-skills
 /plugin install engineering-leader-skills
 ```
-
-While this repo is private, the machine must be signed in to GitHub (`gh auth login`, or git credentials) for the marketplace to resolve.
 
 ### Manually
 

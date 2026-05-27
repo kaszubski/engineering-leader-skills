@@ -1,5 +1,6 @@
 {
   "name": "engineering-leader-skills",
+  "version": "0.1.0",
   "displayName": "Engineering Leader Skills",
   "description": "Claude Code skills for engineering managers and tech leads — code review, coaching, and repo health, each anchored on an established leadership framework.",
   "author": {
