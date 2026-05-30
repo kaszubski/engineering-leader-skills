@@ -5,7 +5,7 @@
 
 ## The operative core
 
-There is no single best leadership style. The right style depends on the person's **development level on a specific task** — not on the person in general.
+There is no single best leadership style. The right style depends on the person's **development level on a specific task**, not on the person in general.
 
 ### Development levels (the person, on one task)
 
@@ -37,4 +37,4 @@ Match the style to the level: D1→S1, D2→S2, D3→S3, D4→S4.
 
 ## Related
 
-Diagnosis is a feedback act — see [Radical Candor](./radical-candor.md) for how to deliver what you observe.
+Diagnosis is a feedback act; see [Radical Candor](./radical-candor.md) for how to deliver what you observe.

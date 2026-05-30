@@ -33,4 +33,4 @@ The framework must **change the output**, not decorate it:
 
 ## Related
 
-Pairs with [Conscious Leadership](./conscious-leadership.md) — "above the line" is the *state* you give and receive candor from; facts-vs-stories keeps the challenge specific. Use the parts Radical Candor doesn't already cover, so the two complement rather than repeat.
+Pairs with [Conscious Leadership](./conscious-leadership.md): "above the line" is the *state* you give and receive candor from, and facts-vs-stories keeps the challenge specific. Use the parts Radical Candor doesn't already cover, so the two complement rather than repeat.
