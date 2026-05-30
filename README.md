@@ -2,7 +2,7 @@
 
 Claude Code skills for engineering managers and tech leads, by [Matt Kaszubski](https://github.com/kaszubski).
 
-> **Early days — `v0.2.0`.** Expect breaking changes. Triggers and rubrics will sharpen as the skills meet real PRs and real teams. Feedback in Issues welcome.
+> **`v0.2.0`, small and opinionated by design.** The triggers and rubrics sharpen as they meet real PRs and real teams; that iteration is the point, not a caveat. Issues welcome, especially where a skill misfired.
 
 ## What this is
 
@@ -16,12 +16,20 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 
 | Skill | What it does | Anchored on |
 |---|---|---|
+| `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. Local, deterministic, advisory. | Measurement instrument (DDD lens, one signal) |
 | `pr-review` | Reviews a PR for what scales or sinks a team (coupling, reviewability, convention drift), not style nits. | Radical Candor |
 | `coaching-calibrator` | Given an engineer and a task, recommends how to coach or delegate it. | Situational Leadership II |
-| `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. | Measurement instrument (DDD lens, one signal) |
 | `retro-facilitator` | Turns raw retro material into a facilitated retro: separates fact from story, converts blame into ownership. | Conscious Leadership |
 
 ## Examples
+
+### `repo-xray`
+
+> *"Run a repo-health x-ray on this project — last 365 days"*
+
+Runs five signal queries (review concentration, knowledge silos, time-to-first-review, stale PRs, silent merges), then narrates them as a *calibrated* health note. Calibrated meaning: a 66% silent-merge rate on a two-person repo is not a 66% silent-merge rate on a thirty-person team, and the narration says so. Runs entirely on your machine with your own `git`/`gh` auth; nothing is posted.
+
+---
 
 ### `pr-review`
 
@@ -61,14 +69,6 @@ Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well
 > *"Sarah is moving onto incident response. She handled one ticket before with help, isn't confident yet. How should I support her?"*
 
 Diagnoses **competence and commitment separately**, lands on a development level (D1–D4), then prescribes the matching style (S1 Directing → S4 Delegating) as concrete behaviours for the week. Asks for missing signals rather than guessing a level, because SLII is a conversation, not a covert label.
-
----
-
-### `repo-xray`
-
-> *"Run a repo-health x-ray on this project — last 365 days"*
-
-Runs five signal queries (review concentration, knowledge silos, time-to-first-review, stale PRs, silent merges), then narrates them as a *calibrated* health note. Calibrated meaning: a 66% silent-merge rate on a two-person repo is not a 66% silent-merge rate on a thirty-person team, and the narration says so.
 
 ---
 
