@@ -56,6 +56,26 @@ def severity(ratio: float, watch: float, concern: float) -> str:
     return "ok"
 
 
+def damp_for_small_team(sig: dict, contributors: int) -> dict:
+    """Soften a team-size-sensitive severity by one band on a tiny team.
+
+    A 66% silent-merge rate means something different on a two-person repo than
+    on a thirty-person team: with one or two contributors, single-author files,
+    a dominant reviewer, and unreviewed merges are largely *structural* — there
+    is no one else. So for 1–2 contributors we drop one band (concern→watch,
+    watch→ok) and say we did. With 0 contributors we don't know the team size
+    (no git history read), so we leave the signal untouched.
+    """
+    if not 1 <= contributors <= 2 or sig["severity"] == "ok":
+        return sig
+    softened = {"concern": "watch", "watch": "ok"}[sig["severity"]]
+    out = dict(sig)
+    out["severity"] = softened
+    out["detail"] += (f" — softened from '{sig['severity']}' "
+                      f"(small team: {contributors} contributor(s))")
+    return out
+
+
 # --- raw data ---------------------------------------------------------------
 
 def git_log(repo: str, since: str) -> list[dict]:
@@ -257,17 +277,25 @@ def main() -> int:
     has_gh = gh_available(args.repo)
     prs = gh_prs(args.repo) if has_gh else []
 
+    # Distinct commit authors in the window — a deterministic proxy for team
+    # size, used to calibrate the team-size-sensitive signals below.
+    contributors = len({c["author"] for c in commits})
+
     report = {
         "window_days": args.days,
         "github_data": has_gh,
         "commits_analyzed": len(commits),
         "prs_analyzed": len(prs),
+        "contributors": contributors,
         "signals": {
-            "knowledge_silos": signal_knowledge_silos(commits),
-            "review_concentration": signal_review_concentration(prs),
+            "knowledge_silos": damp_for_small_team(
+                signal_knowledge_silos(commits), contributors),
+            "review_concentration": damp_for_small_team(
+                signal_review_concentration(prs), contributors),
             "time_to_first_review": signal_time_to_first_review(prs),
             "stale_prs": signal_stale_prs(prs),
-            "silent_merges": signal_silent_merges(prs),
+            "silent_merges": damp_for_small_team(
+                signal_silent_merges(prs), contributors),
         },
     }
     if not has_gh:
