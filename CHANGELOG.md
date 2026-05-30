@@ -6,6 +6,8 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-05-30
+
 ### Added
 - **`retro-facilitator` skill** — turns raw retrospective material into a
   facilitated retro, anchored on Conscious Leadership: reads the room's
@@ -42,5 +44,6 @@ sharpen against real PRs and real teams.
   Situational Leadership II, Domain-Driven Design, and Conscious Leadership.
 - **`TEMPLATE.md`** — the shape every skill in the collection follows.
 
-[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kaszubski/engineering-leader-skills/releases/tag/v0.1.0
