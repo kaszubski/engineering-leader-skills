@@ -19,4 +19,4 @@ Conscious Leadership and [Radical Candor](./radical-candor.md) overlap (candor, 
 
 ## Related
 
-Anchors the planned `retro-facilitator` skill (drama triangle → radical responsibility is the core retro move). Cross-references [Radical Candor](./radical-candor.md).
+Anchors the `retro-facilitator` skill (drama triangle → radical responsibility is the core retro move). Cross-references [Radical Candor](./radical-candor.md).
