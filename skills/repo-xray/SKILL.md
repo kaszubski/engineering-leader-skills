@@ -37,6 +37,8 @@ Requires Python 3 and `git`. `gh` is optional — without it, GitHub PR signals 
 
 Knowledge silos · review concentration · time-to-first-review (and its drift) · stale PRs · silent merges. Each carries a severity: `ok` / `watch` / `concern`.
 
+**Team-size calibration is in the engine.** The script reports a `contributors` count (distinct commit authors in the window). For a 1–2 contributor repo it softens the three team-size-sensitive signals — knowledge silos, review concentration, silent merges — by one band and records that in the signal's `detail`: with almost no one else, single-author files and unreviewed merges are *structural*, not a process failure. When you see a softened signal, carry that calibration through in the narration — explain *why* it's softened; never quietly re-inflate it.
+
 ## Output
 
 - A short **health note** first — plain English, calibrated, connecting signals to each other.
