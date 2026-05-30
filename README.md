@@ -2,7 +2,7 @@
 
 Claude Code skills for engineering managers and tech leads — by [Matt Kaszubski](https://github.com/kaszubski).
 
-> **Early days — `v0.1.0`.** Expect breaking changes. Triggers and rubrics will sharpen as the skills meet real PRs and real teams. Feedback in Issues welcome.
+> **Early days — `v0.2.0`.** Expect breaking changes. Triggers and rubrics will sharpen as the skills meet real PRs and real teams. Feedback in Issues welcome.
 
 ## What this is
 
@@ -109,7 +109,7 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 ### Requirements
 
-`pr-review` and `coaching-calibrator` have no dependencies. `repo-xray` — with either install method — needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
+`pr-review`, `coaching-calibrator`, and `retro-facilitator` have no dependencies. `repo-xray` — with either install method — needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
 
 ## Design principles
 
@@ -117,6 +117,16 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 - **Curation over volume.** A few excellent, opinionated skills — never a dump.
 - **Consistency is the product.** Every skill follows [`TEMPLATE.md`](./TEMPLATE.md) and shares the `foundations/` vocabulary.
 - **Principle-based.** General engineering-leadership practice — nothing tied to a specific employer.
+
+## Development
+
+`repo-xray`'s signal engine has a test suite — stdlib `unittest`, no dependencies:
+
+```
+python3 -m unittest discover -s skills/repo-xray/tests
+```
+
+The other skills are prose; their contract is the rubric in each `SKILL.md`.
 
 ## License
 
