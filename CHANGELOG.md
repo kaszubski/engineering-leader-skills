@@ -6,12 +6,25 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-05-31
+
 ### Fixed
 - **`repo-xray` no longer presents a truncated PR sample as the full history.**
   `gh pr list` caps at 200 merged PRs; on a busy repo that means every PR-based
   signal was silently computed on a recent slice. The engine now reports a
   `prs_truncated` flag and a note when the cap is hit, and the skill is told to
   say so up front in the health note.
+
+### Added
+- **CI** (`.github/workflows/ci.yml`) — runs the `repo-xray` test suite and
+  validates the plugin manifests on every push and PR, across Python 3.9 and 3.12.
+- **`CONTRIBUTING.md`** — the bar a new skill has to clear (no framework
+  theatre, curation over volume, `TEMPLATE.md` shape, scripts ship tests).
+
+### Changed
+- **Docs** — humanised the prose across the README, skills, and foundations
+  (varied punctuation, fewer AI-writing tells); reordered the README to lead
+  with `repo-xray`; firmed up the version banner. No skill behaviour changed.
 
 ## [0.2.0] — 2026-05-30
 
@@ -51,6 +64,7 @@ sharpen against real PRs and real teams.
   Situational Leadership II, Domain-Driven Design, and Conscious Leadership.
 - **`TEMPLATE.md`** — the shape every skill in the collection follows.
 
-[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kaszubski/engineering-leader-skills/releases/tag/v0.1.0
