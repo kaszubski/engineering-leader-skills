@@ -1,13 +1,13 @@
 ---
 name: pr-review
-description: Review a pull request or code diff for engineering-leadership concerns — coupling, reviewability, convention drift, and test coverage of changed logic — and deliver the feedback with Radical Candor. Use when asked to review a PR, review a diff, or check code before merge.
+description: Review a pull request or code diff for engineering-leadership concerns (coupling, reviewability, convention drift, and test coverage of changed logic) and deliver the feedback with Radical Candor. Use when asked to review a PR, review a diff, or check code before merge.
 ---
 
 # pr-review
 
 ## Purpose
 
-Reviews a pull request the way an experienced engineering leader would — for what scales or sinks a *team*, not for style a linter already catches. It assesses the change against four dimensions, then delivers the feedback with Radical Candor: direct enough to be useful, framed with enough care to be heard.
+Reviews a pull request the way an experienced engineering leader would: for what scales or sinks a *team*, not for style a linter already catches. It assesses the change against four dimensions, then delivers the feedback with Radical Candor: direct enough to be useful, framed with enough care to be heard.
 
 ## When to use
 
@@ -15,7 +15,7 @@ Reviewing a pull request, a diff, or a branch before merge.
 
 ## When not to
 
-Pure formatting or style passes — that is CI's job, not this skill's. If the only findings would be lint, say the change looks clean and stop.
+Pure formatting or style passes: that's CI's job, not this skill's. If the only findings would be lint, say the change looks clean and stop.
 
 ## Foundation — Radical Candor
 
@@ -39,7 +39,7 @@ See [the Radical Candor foundation](https://github.com/kaszubski/engineering-lea
    - A local branch → `git diff <base-branch>...HEAD`.
    - A diff pasted into the conversation → use it directly.
    If none is available, ask which to review.
-2. **Read for intent first.** What is this PR *trying* to do? A review that misreads the goal is noise — use the PR description and the commit messages.
+2. **Read for intent first.** What is this PR *trying* to do? A review that misreads the goal is noise, so use the PR description and the commit messages.
 3. **Assess the four dimensions** below. Cite a specific `file:line` or code snippet for every finding.
 4. **Draft the review** in the output format.
 5. **Run the Radical Candor self-check** before returning it.
@@ -66,7 +66,7 @@ Can this PR be reviewed *honestly*?
 - **Mixed concerns** — a refactor + a feature + a bugfix in one PR; each one hides the others.
 - Does the diff tell a coherent story?
 
-If the PR is genuinely too large or too mixed, *that finding is the headline* — recommend splitting it before reviewing the rest in detail.
+If the PR is genuinely too large or too mixed, *that finding is the headline*: recommend splitting it before reviewing the rest in detail.
 
 ### 3. Convention drift
 
@@ -82,15 +82,15 @@ Does the change respect the codebase's own model and language? (DDD lens — see
 
 Is new or changed *logic* actually exercised?
 
-- Not coverage percentage — coverage of the *risky lines*: new branches, conditions, edge cases.
+- Not coverage percentage. Coverage of the *risky lines*: new branches, conditions, edge cases.
 - New behaviour shipped with no test.
 - A bug fix with no regression test.
 
-If the project has no visible test setup, note that — don't demand tests blindly.
+If the project has no visible test setup, note that, but don't demand tests blindly.
 
 ## Output format
 
-Produce the review as text for the human to use. This skill does **not** post to GitHub — posting comments, and the merge decision, stay with the reviewer.
+Produce the review as text for the human to use. This skill does **not** post to GitHub; posting comments, and the merge decision, stay with the reviewer.
 
 ```
 **Verdict:** <one line — e.g. "Solid change; two blocking items on coupling and a missing regression test.">
@@ -118,11 +118,11 @@ Before returning the review, test it against the 2×2:
 - **Not Ruinous Empathy** — is any real defect disguised as a "nit:" or buried in politeness? Promote it to blocking.
 - **Not Obnoxious Aggression** — is this an unprioritised pile? Every item must be sorted into blocking or non-blocking.
 
-State the outcome in the self-check line. If the review fails the gate, fix it before returning — don't ship it with a caveat.
+State the outcome in the self-check line. If the review fails the gate, fix it before returning; don't ship it with a caveat.
 
 ## Rules
 
 - Not a linter. Never flag formatting, import order, or anything CI owns.
-- One finding, one place — cite `file:line`.
-- Advisory only — produce the review; never post it or merge.
+- One finding, one place: cite `file:line`.
+- Advisory only: produce the review; never post it or merge.
 - A clean PR is a valid result. Don't manufacture findings to look thorough.

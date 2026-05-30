@@ -5,8 +5,8 @@
 
 ## The operative core
 
-- **The Line.** At any moment a person is **above the line** — open, curious, committed to learning — or **below the line** — closed, defensive, committed to being *right*. The first move of conscious leadership is noticing which side you're on.
-- **Radical responsibility.** Take 100% responsibility for your circumstances; drop blame entirely. The opposite is the **drama triangle** — casting yourself or others as **victim**, **villain**, or **hero**. Shifting out of the triangle means asking "what can I own here?"
+- **The Line.** At any moment a person is **above the line** (open, curious, committed to learning) or **below the line** (closed, defensive, committed to being *right*). The first move of conscious leadership is noticing which side you're on.
+- **Radical responsibility.** Take 100% responsibility for your circumstances; drop blame entirely. The opposite is the **drama triangle**: casting yourself or others as **victim**, **villain**, or **hero**. Shifting out of the triangle means asking "what can I own here?"
 - **Facts vs. stories.** Separate what is observable and verifiable (the *fact*) from the interpretation laid on top (the *story*). "The function is 200 lines" is a fact. "This is sloppy" is a story. Conscious leaders label their stories as stories.
 
 ## How skills in this collection use it

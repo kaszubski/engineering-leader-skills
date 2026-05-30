@@ -1,14 +1,14 @@
 # Engineering Leader Skills
 
-Claude Code skills for engineering managers and tech leads — by [Matt Kaszubski](https://github.com/kaszubski).
+Claude Code skills for engineering managers and tech leads, by [Matt Kaszubski](https://github.com/kaszubski).
 
 > **Early days — `v0.2.0`.** Expect breaking changes. Triggers and rubrics will sharpen as the skills meet real PRs and real teams. Feedback in Issues welcome.
 
 ## What this is
 
-A small, curated collection of Claude Code skills for the work of *leading* engineers — reviewing code, coaching people, reading a team's health. Not a grab-bag.
+A small, curated collection of Claude Code skills for the work of *leading* engineers: reviewing code, coaching people, reading a team's health. Not a grab-bag.
 
-Most skills are anchored on an established leadership framework, operationalised so the framework actually changes the output. One — `repo-xray` — is the collection's measurement instrument: not framework-anchored, just careful, calibrated measurement. Either way, the collection shares one vocabulary.
+Most skills are anchored on an established leadership framework, operationalised so the framework actually changes the output. One of them, `repo-xray`, is the collection's measurement instrument: not framework-anchored, just careful, calibrated measurement. Either way, the collection shares one vocabulary.
 
 The bet: plenty of general-purpose Claude skills exist; almost none are built deliberately *for engineering leaders*. This fills that gap.
 
@@ -16,10 +16,10 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 
 | Skill | What it does | Anchored on |
 |---|---|---|
-| `pr-review` | Reviews a PR for what scales or sinks a team — coupling, reviewability, convention drift — not style nits. | Radical Candor |
+| `pr-review` | Reviews a PR for what scales or sinks a team (coupling, reviewability, convention drift), not style nits. | Radical Candor |
 | `coaching-calibrator` | Given an engineer and a task, recommends how to coach or delegate it. | Situational Leadership II |
 | `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. | Measurement instrument (DDD lens, one signal) |
-| `retro-facilitator` | Turns raw retro material into a facilitated retro — separates fact from story, converts blame into ownership. | Conscious Leadership |
+| `retro-facilitator` | Turns raw retro material into a facilitated retro: separates fact from story, converts blame into ownership. | Conscious Leadership |
 
 ## Examples
 
@@ -27,7 +27,7 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 
 > *"Review PR #42 on owner/repo"*
 
-Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well / Self-check**. Cites `file:line`. Never posts to GitHub — advisory only.
+Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well / Self-check**. Cites `file:line`. Never posts to GitHub; advisory only.
 
 <details>
 <summary>Sample output (real review of a small UX PR)</summary>
@@ -60,7 +60,7 @@ Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well
 
 > *"Sarah is moving onto incident response. She handled one ticket before with help, isn't confident yet. How should I support her?"*
 
-Diagnoses **competence and commitment separately**, lands on a development level (D1–D4), then prescribes the matching style (S1 Directing → S4 Delegating) as concrete behaviours for the week. Asks for missing signals rather than guessing a level — SLII is a conversation, not a covert label.
+Diagnoses **competence and commitment separately**, lands on a development level (D1–D4), then prescribes the matching style (S1 Directing → S4 Delegating) as concrete behaviours for the week. Asks for missing signals rather than guessing a level, because SLII is a conversation, not a covert label.
 
 ---
 
@@ -76,7 +76,7 @@ Runs five signal queries (review concentration, knowledge silos, time-to-first-r
 
 > *"Run a retro on Friday's outage — the deploy went out at 4pm and on-call spent the weekend on it."*
 
-Structures the debrief through Conscious Leadership: reads the **room's state** (above/below the line), splits every observation into a **verifiable fact and a labelled story**, converts victim/villain/hero framing into **ownership spread across parties**, then turns owned insight into **concrete experiments** for next time. The distinctive move — and the thing a generic "what went well / badly" template skips — is refusing to let a story ride in as a fact, and naming no villains.
+Structures the debrief through Conscious Leadership. It reads the room's state (above or below the line), splits every observation into a **verifiable fact and a labelled story**, turns victim/villain/hero framing into ownership spread across the people involved, then turns what they own into concrete experiments for next time. Here's the move a generic "what went well / badly" template skips: it won't let a story ride in as a fact, and it names no villains.
 
 ## Foundations
 
@@ -87,7 +87,7 @@ The skills draw on these frameworks, distilled *for application* in [`foundation
 - [Domain-Driven Design](./foundations/ddd.md) — Eric Evans
 - [Conscious Leadership](./foundations/conscious-leadership.md) — Dethmer, Chapman & Klemp
 
-These are *distillations for use*, not reproductions — each one credits and links its source.
+These are *distillations for use*, not reproductions; each one credits and links its source.
 
 ## Install
 
@@ -109,18 +109,18 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 ### Requirements
 
-`pr-review`, `coaching-calibrator`, and `retro-facilitator` have no dependencies. `repo-xray` — with either install method — needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
+`pr-review`, `coaching-calibrator`, and `retro-facilitator` have no dependencies. `repo-xray` (with either install method) needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
 
 ## Design principles
 
 - **No framework theatre.** If a framework doesn't visibly change a skill's output, it gets cut.
-- **Curation over volume.** A few excellent, opinionated skills — never a dump.
+- **Curation over volume.** A few excellent, opinionated skills. Never a dump.
 - **Consistency is the product.** Every skill follows [`TEMPLATE.md`](./TEMPLATE.md) and shares the `foundations/` vocabulary.
-- **Principle-based.** General engineering-leadership practice — nothing tied to a specific employer.
+- **Principle-based.** General engineering-leadership practice, nothing tied to a specific employer.
 
 ## Development
 
-`repo-xray`'s signal engine has a test suite — stdlib `unittest`, no dependencies:
+`repo-xray`'s signal engine has a test suite (stdlib `unittest`, no dependencies):
 
 ```
 python3 -m unittest discover -s skills/repo-xray/tests
