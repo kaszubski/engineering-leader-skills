@@ -6,6 +6,13 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- **`repo-xray` no longer presents a truncated PR sample as the full history.**
+  `gh pr list` caps at 200 merged PRs; on a busy repo that means every PR-based
+  signal was silently computed on a recent slice. The engine now reports a
+  `prs_truncated` flag and a note when the cap is hit, and the skill is told to
+  say so up front in the health note.
+
 ## [0.2.0] — 2026-05-30
 
 ### Added

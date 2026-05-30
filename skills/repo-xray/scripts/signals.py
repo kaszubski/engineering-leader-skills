@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, timezone
 from statistics import median
 
 STALE_DAYS = 14  # a PR open longer than this before merge counts as stale
+PR_FETCH_LIMIT = 200  # gh pr list cap; hitting it means we saw only a recent slice
 
 
 def run(cmd: list[str], cwd: str) -> str | None:
@@ -112,7 +113,7 @@ def git_log(repo: str, since: str) -> list[dict]:
 def gh_prs(repo: str) -> list[dict]:
     """Fetch merged PRs (with review data) via the gh CLI."""
     raw = run(
-        ["gh", "pr", "list", "--state", "merged", "--limit", "200",
+        ["gh", "pr", "list", "--state", "merged", "--limit", str(PR_FETCH_LIMIT),
          "--json", "number,author,createdAt,mergedAt,reviews"],
         repo,
     )
@@ -123,6 +124,16 @@ def gh_prs(repo: str) -> list[dict]:
     except json.JSONDecodeError:
         return []
     return data if isinstance(data, list) else []
+
+
+def hit_pr_cap(prs: list) -> bool:
+    """Whether the PR fetch likely truncated — we got a full page of results.
+
+    A busy repo can have far more than PR_FETCH_LIMIT merged PRs; when it does,
+    every PR-based ratio is computed on the most recent slice only. The skill
+    must say so rather than present a partial sample as the whole history.
+    """
+    return len(prs) >= PR_FETCH_LIMIT
 
 
 # --- signals ----------------------------------------------------------------
@@ -281,11 +292,14 @@ def main() -> int:
     # size, used to calibrate the team-size-sensitive signals below.
     contributors = len({c["author"] for c in commits})
 
+    prs_truncated = hit_pr_cap(prs)
+
     report = {
         "window_days": args.days,
         "github_data": has_gh,
         "commits_analyzed": len(commits),
         "prs_analyzed": len(prs),
+        "prs_truncated": prs_truncated,
         "contributors": contributors,
         "signals": {
             "knowledge_silos": damp_for_small_team(
@@ -300,6 +314,13 @@ def main() -> int:
     }
     if not has_gh:
         report["note"] = "gh unavailable — GitHub PR signals skipped; git-only mode."
+    elif prs_truncated:
+        report["note"] = (
+            f"PR fetch hit the {PR_FETCH_LIMIT}-PR cap; all PR-based signals "
+            "(review concentration, time-to-first-review, stale PRs, silent "
+            "merges) reflect only the most recent merged PRs, not the full "
+            "history. Narrow --days, or read these ratios as a recent slice."
+        )
 
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

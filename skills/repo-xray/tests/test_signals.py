@@ -265,6 +265,20 @@ class TestDampForSmallTeam(unittest.TestCase):
         self.assertEqual(original["severity"], "concern")
 
 
+# --- PR fetch cap -----------------------------------------------------------
+
+class TestHitPrCap(unittest.TestCase):
+    def test_below_cap_is_false(self):
+        self.assertFalse(signals.hit_pr_cap([pr(i) for i in range(signals.PR_FETCH_LIMIT - 1)]))
+
+    def test_at_cap_is_true(self):
+        # A full page back means there are probably older PRs we never saw.
+        self.assertTrue(signals.hit_pr_cap([pr(i) for i in range(signals.PR_FETCH_LIMIT)]))
+
+    def test_empty_is_false(self):
+        self.assertFalse(signals.hit_pr_cap([]))
+
+
 # --- git_log parser (integration: real temp repo) ---------------------------
 
 class TestGitLogParser(unittest.TestCase):
