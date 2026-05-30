@@ -1,6 +1,6 @@
 {
   "name": "engineering-leader-skills",
-  "description": "Claude Code skills for engineering managers and tech leads — code review, coaching, and repo health, each anchored on an established leadership framework.",
+  "description": "Claude Code skills for engineering managers and tech leads — code review, coaching, repo health, and retrospectives, most anchored on an established leadership framework.",
   "owner": {
     "name": "Matt Kaszubski"
   },
@@ -8,7 +8,7 @@
     {
       "name": "engineering-leader-skills",
       "source": "./",
-      "description": "Code review, coaching, and repo-health skills for engineering leaders — each anchored on an established framework."
+      "description": "Code review, coaching, repo-health, and retrospective skills for engineering leaders — most anchored on an established framework."
     }
   ]
 }

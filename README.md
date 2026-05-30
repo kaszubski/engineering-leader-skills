@@ -19,8 +19,7 @@ The bet: plenty of general-purpose Claude skills exist; almost none are built de
 | `pr-review` | Reviews a PR for what scales or sinks a team — coupling, reviewability, convention drift — not style nits. | Radical Candor |
 | `coaching-calibrator` | Given an engineer and a task, recommends how to coach or delegate it. | Situational Leadership II |
 | `repo-xray` | Reads git + PR history and surfaces non-obvious team-health signals, narrated. | Measurement instrument (DDD lens, one signal) |
-
-Roadmap: `retro-facilitator`, anchored on Conscious Leadership.
+| `retro-facilitator` | Turns raw retro material into a facilitated retro — separates fact from story, converts blame into ownership. | Conscious Leadership |
 
 ## Examples
 
@@ -70,6 +69,14 @@ Diagnoses **competence and commitment separately**, lands on a development level
 > *"Run a repo-health x-ray on this project — last 365 days"*
 
 Runs five signal queries (review concentration, knowledge silos, time-to-first-review, stale PRs, silent merges), then narrates them as a *calibrated* health note. Calibrated meaning: a 66% silent-merge rate on a two-person repo is not a 66% silent-merge rate on a thirty-person team, and the narration says so.
+
+---
+
+### `retro-facilitator`
+
+> *"Run a retro on Friday's outage — the deploy went out at 4pm and on-call spent the weekend on it."*
+
+Structures the debrief through Conscious Leadership: reads the **room's state** (above/below the line), splits every observation into a **verifiable fact and a labelled story**, converts victim/villain/hero framing into **ownership spread across parties**, then turns owned insight into **concrete experiments** for next time. The distinctive move — and the thing a generic "what went well / badly" template skips — is refusing to let a story ride in as a fact, and naming no villains.
 
 ## Foundations
 
