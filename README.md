@@ -126,7 +126,7 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 python3 -m unittest discover -s skills/repo-xray/tests
 ```
 
-The other skills are prose; their contract is the rubric in each `SKILL.md`.
+The other skills are prose; their contract is the rubric in each `SKILL.md`. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the bar a new skill has to clear.
 
 ## License
 
