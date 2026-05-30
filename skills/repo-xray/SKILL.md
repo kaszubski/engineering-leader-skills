@@ -48,3 +48,4 @@ Knowledge silos · review concentration · time-to-first-review (and its drift) 
 
 - **Calibration over alarm.** A health tool that cries wolf gets uninstalled. Do not inflate `watch` into `concern`.
 - All numbers come from the script. The model narrates; it never counts.
+- **Honour the sample's limits.** If `prs_truncated` is `true`, the PR fetch hit its cap and every PR-based signal reflects only the most recent merged PRs. Say so up front in the health note, and don't present those ratios as the full history. This matters most on large, busy repos.
