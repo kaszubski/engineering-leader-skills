@@ -6,6 +6,8 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-13
+
 ### Fixed
 - **`repo-xray` PR signals now honour the `--days` window.** `gh pr list`
   returns the most recent merged PRs regardless of age, so a `--days 30` run
@@ -99,7 +101,8 @@ sharpen against real PRs and real teams.
   Situational Leadership II, Domain-Driven Design, and Conscious Leadership.
 - **`TEMPLATE.md`** — the shape every skill in the collection follows.
 
-[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kaszubski/engineering-leader-skills/releases/tag/v0.1.0
