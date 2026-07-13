@@ -18,6 +18,14 @@ All notable changes to this project are documented here. Format follows
   one person under two names no longer counts as two contributors — that
   count drives the small-team severity calibration.
 
+### Added
+- **CI smoke-runs the `repo-xray` engine end-to-end** against the checked-out
+  repo itself and validates its JSON output — catches wiring breakage
+  (argparse, the git subprocess path, report shape) that unit tests on the
+  signal functions can't. Checkout now fetches full history so the run has
+  real git log data; with `gh` unauthenticated on runners, it also exercises
+  git-only mode.
+
 ### Changed
 - **`repo-xray`'s stale-PR signal now sees PRs that never merged.** It counts
   currently-open non-draft PRs older than the threshold alongside merged PRs

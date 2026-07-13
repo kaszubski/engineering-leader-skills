@@ -15,11 +15,21 @@ jobs:
         python-version: ["3.9", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history — the smoke run reads git log
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run repo-xray engine tests
         run: python -m unittest discover -s skills/repo-xray/tests -v
+      - name: Smoke-run the signal engine against this repo
+        # End-to-end wiring the unit tests can't cover: argparse, the git
+        # subprocess path, and that the output is valid JSON. gh is
+        # unauthenticated here, so this also exercises git-only mode.
+        run: |
+          set -o pipefail
+          python skills/repo-xray/scripts/signals.py --repo . --days 365 \
+            | python -m json.tool > /dev/null
       - name: Validate plugin manifests are valid JSON
         run: |
           python -m json.tool .claude-plugin/plugin.json > /dev/null
