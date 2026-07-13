@@ -117,12 +117,14 @@ Before returning the review, test it against the 2×2:
 - **Care Personally** — is every comment on the *code*, not the coder? Does the framing assume competence and a shared goal?
 - **Not Ruinous Empathy** — is any real defect disguised as a "nit:" or buried in politeness? Promote it to blocking.
 - **Not Obnoxious Aggression** — is this an unprioritised pile? Every item must be sorted into blocking or non-blocking.
+- **Proportionate** — when nothing blocks, would you actually raise each non-blocking item out loud with the author? Cut the ones you wouldn't.
 
 State the outcome in the self-check line. If the review fails the gate, fix it before returning; don't ship it with a caveat.
 
 ## Rules
 
 - Not a linter. Never flag formatting, import order, or anything CI owns.
+- **A clean PR gets a short review.** When nothing blocks, cap non-blocking items at the one or two you'd genuinely raise in person — usually zero or one. Padding a clean PR with polish notes to look thorough is framework theatre, and it trains authors to skim your reviews.
 - One finding, one place: cite `file:line`.
 - Advisory only: produce the review; never post it or merge.
 - A clean PR is a valid result. Don't manufacture findings to look thorough.

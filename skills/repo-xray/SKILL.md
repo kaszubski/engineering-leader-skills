@@ -37,6 +37,8 @@ Requires Python 3 and `git`. `gh` is optional; without it, GitHub PR signals are
 
 Knowledge silos · review concentration · time-to-first-review (and its drift) · stale PRs · silent merges. Each carries a severity: `ok` / `watch` / `concern`.
 
+Three measurement choices worth knowing when narrating: PR signals are bounded to the same `--days` window as the git signals; *stale PRs* counts both merged PRs that took too long to land and currently-open non-draft PRs already older than the threshold; and bot reviews (dependabot, CI apps) never count as review — a merge approved only by a bot is a silent merge.
+
 **Team-size calibration is in the engine.** The script reports a `contributors` count (distinct commit authors in the window). For a 1–2 contributor repo it softens the three team-size-sensitive signals (knowledge silos, review concentration, silent merges) by one band and records that in the signal's `detail`: with almost no one else, single-author files and unreviewed merges are *structural*, not a process failure. When you see a softened signal, carry that calibration through in the narration: explain *why* it's softened, and never quietly re-inflate it.
 
 ## Output
@@ -48,4 +50,4 @@ Knowledge silos · review concentration · time-to-first-review (and its drift) 
 
 - **Calibration over alarm.** A health tool that cries wolf gets uninstalled. Do not inflate `watch` into `concern`.
 - All numbers come from the script. The model narrates; it never counts.
-- **Honour the sample's limits.** If `prs_truncated` is `true`, the PR fetch hit its cap and every PR-based signal reflects only the most recent merged PRs. Say so up front in the health note, and don't present those ratios as the full history. This matters most on large, busy repos.
+- **Honour the sample's limits.** If `pr_window_covered` is `false`, the PR fetch hit its cap before reaching back to the window start, and every merged-PR signal reflects only the most recent slice of the window. Say so up front in the health note, and don't present those ratios as the full window. This matters most on large, busy repos.

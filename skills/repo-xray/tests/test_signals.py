@@ -29,8 +29,11 @@ def commit(author: str, *files: str, sha: str = "deadbeef") -> dict:
             "files": list(files)}
 
 
-def review(login: str, submitted: str | None = None) -> dict:
+def review(login: str, submitted: str | None = None,
+           is_bot: bool = False) -> dict:
     r: dict = {"author": {"login": login}}
+    if is_bot:
+        r["author"]["is_bot"] = True
     if submitted is not None:
         r["submittedAt"] = submitted
     return r
@@ -71,6 +74,86 @@ class TestParseIso(unittest.TestCase):
             signals.parse_iso("2026-01-01T00:00:00Z"),
             signals.parse_iso("2026-01-01T00:00:00+00:00"),
         )
+
+
+# --- PR window filter ---------------------------------------------------------
+
+class TestFilterPrsToWindow(unittest.TestCase):
+    SINCE = signals.parse_iso("2026-01-01T00:00:00Z")
+
+    def test_keeps_prs_merged_inside_window(self):
+        prs = [pr(1, merged="2026-02-01T00:00:00Z")]
+        self.assertEqual(signals.filter_prs_to_window(prs, self.SINCE), prs)
+
+    def test_drops_prs_merged_before_window(self):
+        prs = [pr(1, merged="2025-06-01T00:00:00Z")]
+        self.assertEqual(signals.filter_prs_to_window(prs, self.SINCE), [])
+
+    def test_drops_prs_without_merge_date(self):
+        self.assertEqual(signals.filter_prs_to_window([pr(1)], self.SINCE), [])
+
+    def test_naive_timestamp_treated_as_utc(self):
+        prs = [pr(1, merged="2026-02-01T00:00:00")]  # no offset
+        self.assertEqual(len(signals.filter_prs_to_window(prs, self.SINCE)), 1)
+
+
+class TestPrWindowCovered(unittest.TestCase):
+    SINCE = signals.parse_iso("2026-01-01T00:00:00Z")
+
+    def test_below_cap_is_covered(self):
+        prs = [pr(1, merged="2026-02-01T00:00:00Z")]
+        self.assertTrue(signals.pr_window_covered(prs, self.SINCE))
+
+    def test_cap_hit_but_fetch_reaches_window_start(self):
+        # Oldest fetched PR predates the window -> nothing in-window was missed.
+        prs = [pr(i, merged="2026-02-01T00:00:00Z")
+               for i in range(signals.PR_FETCH_LIMIT - 1)]
+        prs.append(pr(999, merged="2025-12-01T00:00:00Z"))
+        self.assertTrue(signals.pr_window_covered(prs, self.SINCE))
+
+    def test_cap_hit_and_fetch_stops_inside_window(self):
+        # A full page, all newer than the window start -> older PRs missed.
+        prs = [pr(i, merged="2026-02-01T00:00:00Z")
+               for i in range(signals.PR_FETCH_LIMIT)]
+        self.assertFalse(signals.pr_window_covered(prs, self.SINCE))
+
+
+# --- bot review filter --------------------------------------------------------
+
+class TestHumanReviews(unittest.TestCase):
+    def test_is_bot_flag(self):
+        self.assertTrue(signals.is_bot_review(review("renovate", is_bot=True)))
+
+    def test_bot_suffix_and_app_prefix(self):
+        self.assertTrue(signals.is_bot_review(review("dependabot[bot]")))
+        self.assertTrue(signals.is_bot_review(review("app/copilot")))
+
+    def test_human_kept(self):
+        self.assertFalse(signals.is_bot_review(review("alice")))
+
+    def test_strips_bots_from_pr(self):
+        p = pr(1, reviews=[review("alice"), review("dependabot[bot]")])
+        logins = [r["author"]["login"] for r in signals.human_reviews(p)]
+        self.assertEqual(logins, ["alice"])
+
+    def test_bot_only_review_counts_as_silent_merge(self):
+        prs = [pr(1, reviews=[review("dependabot[bot]")])]
+        out = signals.signal_silent_merges(prs)
+        self.assertEqual(out["value"], 1)
+
+    def test_bot_review_does_not_mask_slow_human_review(self):
+        prs = [pr(1, created="2026-01-01T00:00:00Z", reviews=[
+            review("app/copilot", "2026-01-01T00:05:00Z"),  # instant bot
+            review("alice", "2026-01-02T00:00:00Z"),        # 24h human
+        ])]
+        out = signals.signal_time_to_first_review(prs)
+        self.assertEqual(out["value"], 24.0)
+
+    def test_bot_reviews_do_not_concentrate(self):
+        prs = [pr(1, reviews=[review("alice"), review("bob"),
+                              review("dependabot[bot]")] )]
+        out = signals.signal_review_concentration(prs)
+        self.assertNotIn("dependabot", out["detail"])
 
 
 # --- knowledge silos --------------------------------------------------------
@@ -198,6 +281,33 @@ class TestStalePrs(unittest.TestCase):
         out = signals.signal_stale_prs(prs)
         self.assertEqual(out["value"], 0)
 
+    NOW = signals.parse_iso("2026-02-01T00:00:00Z")
+
+    def test_old_open_pr_is_stale(self):
+        open_prs = [{"number": 7, "createdAt": "2026-01-01T00:00:00Z",
+                     "isDraft": False}]  # 31d open as of NOW
+        out = signals.signal_stale_prs([], open_prs, now=self.NOW)
+        self.assertEqual(out["value"], 1)
+        self.assertIn("#7", out["detail"])
+        self.assertIn("1 still open", out["detail"])
+
+    def test_draft_open_pr_is_ignored(self):
+        open_prs = [{"number": 8, "createdAt": "2026-01-01T00:00:00Z",
+                     "isDraft": True}]  # parked on purpose
+        out = signals.signal_stale_prs([], open_prs, now=self.NOW)
+        self.assertEqual(out["value"], 0)
+        self.assertEqual(out["severity"], "ok")
+
+    def test_fresh_open_pr_counts_in_denominator(self):
+        merged = [pr(1, created="2026-01-01T00:00:00Z",
+                     merged="2026-01-20T00:00:00Z")]  # 19d stale
+        open_prs = [{"number": 9, "createdAt": "2026-01-31T00:00:00Z",
+                     "isDraft": False}]  # 1d open — fresh
+        # 1 stale of 2 = 0.5 -> concern; the fresh open PR joins the base
+        out = signals.signal_stale_prs(merged, open_prs, now=self.NOW)
+        self.assertEqual(out["value"], 1)
+        self.assertIn("of 2 PRs", out["detail"])
+
 
 # --- silent merges ----------------------------------------------------------
 
@@ -284,10 +394,11 @@ class TestHitPrCap(unittest.TestCase):
 class TestGitLogParser(unittest.TestCase):
     """Exercises the --numstat parser end-to-end against a real git repo."""
 
-    def _git(self, repo: str, *args: str, author: str | None = None) -> None:
+    def _git(self, repo: str, *args: str, author: str | None = None,
+             email: str = "t@e.x") -> None:
         env = dict(os.environ)
         env.update({
-            "GIT_AUTHOR_NAME": author or "Test", "GIT_AUTHOR_EMAIL": "t@e.x",
+            "GIT_AUTHOR_NAME": author or "Test", "GIT_AUTHOR_EMAIL": email,
             "GIT_COMMITTER_NAME": "Test", "GIT_COMMITTER_EMAIL": "t@e.x",
         })
         subprocess.run(["git", *args], cwd=repo, env=env, check=True,
@@ -311,6 +422,26 @@ class TestGitLogParser(unittest.TestCase):
             self.assertEqual(authors, {"Alice", "Bob"})
             touched = {f for c in commits for f in c["files"]}
             self.assertEqual(touched, {"a.py", "b.py"})
+
+    def test_respects_mailmap(self):
+        # Same person under two names must not count as two contributors —
+        # the count drives the small-team calibration.
+        with tempfile.TemporaryDirectory() as repo:
+            self._git(repo, "init", "-q")
+            (Path(repo) / ".mailmap").write_text("Alice <a@e.x>\n")
+
+            (Path(repo) / "a.py").write_text("one\n")
+            self._git(repo, "add", ".")
+            self._git(repo, "commit", "-q", "-m", "first",
+                      author="Alice", email="a@e.x")
+
+            (Path(repo) / "a.py").write_text("two\n")
+            self._git(repo, "add", "a.py")
+            self._git(repo, "commit", "-q", "-m", "second",
+                      author="Alice Oldname", email="a@e.x")
+
+            commits = signals.git_log(repo, since="2000-01-01")
+            self.assertEqual({c["author"] for c in commits}, {"Alice"})
 
 
 if __name__ == "__main__":
