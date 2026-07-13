@@ -27,6 +27,11 @@ All notable changes to this project are documented here. Format follows
   apps, `app/*` logins) are excluded from review concentration,
   time-to-first-review, and silent merges: a merge approved only by a bot is
   a silent merge, and an instant bot review no longer masks a slow human one.
+- **`pr-review` is calibrated against padding clean PRs.** Launch testing
+  showed the skill producing several non-blocking items on PRs it judged
+  clean — thoroughness theatre. The rubric now says a clean PR gets a short
+  review (cap non-blocking items at what you'd genuinely raise in person),
+  and the Radical Candor self-check gains a proportionality gate.
 
 ## [0.2.1] — 2026-05-31
 
