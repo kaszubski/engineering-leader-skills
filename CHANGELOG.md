@@ -6,7 +6,27 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- **`repo-xray` PR signals now honour the `--days` window.** `gh pr list`
+  returns the most recent merged PRs regardless of age, so a `--days 30` run
+  computed review concentration, stale PRs, and silent merges over arbitrarily
+  old history. Merged PRs are now filtered to the window, and the old
+  `prs_truncated` flag is replaced by `pr_window_covered` — false only when
+  the fetch cap was hit *before* reaching the window start, which is the case
+  that actually loses data.
+- **Contributor counting respects `.mailmap`** (`%aN` instead of `%an`), so
+  one person under two names no longer counts as two contributors — that
+  count drives the small-team severity calibration.
+
 ### Changed
+- **`repo-xray`'s stale-PR signal now sees PRs that never merged.** It counts
+  currently-open non-draft PRs older than the threshold alongside merged PRs
+  that were slow to land; previously the most literal "stale PR" — one sitting
+  open with no merge in sight — was invisible.
+- **Bot reviews no longer count as review.** Reviews by bots (dependabot, CI
+  apps, `app/*` logins) are excluded from review concentration,
+  time-to-first-review, and silent merges: a merge approved only by a bot is
+  a silent merge, and an instant bot review no longer masks a slow human one.
 - **`pr-review` is calibrated against padding clean PRs.** Launch testing
   showed the skill producing several non-blocking items on PRs it judged
   clean — thoroughness theatre. The rubric now says a clean PR gets a short
