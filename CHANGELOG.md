@@ -6,6 +6,13 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **`pr-review` is calibrated against padding clean PRs.** Launch testing
+  showed the skill producing several non-blocking items on PRs it judged
+  clean — thoroughness theatre. The rubric now says a clean PR gets a short
+  review (cap non-blocking items at what you'd genuinely raise in person),
+  and the Radical Candor self-check gains a proportionality gate.
+
 ## [0.2.1] — 2026-05-31
 
 ### Fixed
