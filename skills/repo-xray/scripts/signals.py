@@ -87,7 +87,7 @@ def git_log(repo: str, since: str) -> list[dict]:
     """
     raw = run(
         ["git", "log", "--no-merges", f"--since={since}", "--numstat",
-         "--pretty=format:COMMIT%x09%H%x09%an%x09%aI"],
+         "--pretty=format:COMMIT%x09%H%x09%aN%x09%aI"],  # %aN honours .mailmap
         repo,
     )
     if raw is None:
@@ -124,6 +124,75 @@ def gh_prs(repo: str) -> list[dict]:
     except json.JSONDecodeError:
         return []
     return data if isinstance(data, list) else []
+
+
+def gh_open_prs(repo: str) -> list[dict]:
+    """Fetch currently-open PRs via the gh CLI (for the stale-PR signal)."""
+    raw = run(
+        ["gh", "pr", "list", "--state", "open", "--limit", str(PR_FETCH_LIMIT),
+         "--json", "number,createdAt,isDraft"],
+        repo,
+    )
+    if raw is None:
+        return []
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    return data if isinstance(data, list) else []
+
+
+def as_utc(dt: datetime) -> datetime:
+    """Treat a naive datetime as UTC so it can be compared to aware ones."""
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def filter_prs_to_window(prs: list[dict], since: datetime) -> list[dict]:
+    """Keep only PRs merged inside the analysis window.
+
+    `gh pr list` has no --since; it returns the most recent merged PRs
+    regardless of age. Without this filter, a --days 30 run would compute
+    every PR-based signal over arbitrarily old history.
+    """
+    kept = []
+    for pr in prs:
+        merged = parse_iso(pr.get("mergedAt"))
+        if merged and as_utc(merged) >= since:
+            kept.append(pr)
+    return kept
+
+
+def pr_window_covered(fetched: list[dict], since: datetime) -> bool:
+    """Whether the fetched merged-PR slice reaches back past the window start.
+
+    If the fetch hit its cap *and* the oldest PR we got is still newer than
+    the window start, older in-window PRs exist that we never saw — the
+    PR-based signals then cover only part of the window.
+    """
+    if not hit_pr_cap(fetched):
+        return True
+    dates = [d for d in (parse_iso(p.get("mergedAt")) for p in fetched) if d]
+    if not dates:
+        return False
+    return as_utc(min(dates)) <= since
+
+
+def is_bot_review(review: dict) -> bool:
+    """Whether a review was left by a bot (dependabot, CI apps, Copilot...)."""
+    author = review.get("author") or {}
+    if author.get("is_bot"):
+        return True
+    login = author.get("login") or ""
+    return login.endswith("[bot]") or login.startswith("app/")
+
+
+def human_reviews(pr: dict) -> list[dict]:
+    """A PR's reviews with bot reviews stripped out.
+
+    Every review-based signal means *human* review: a bot approval should
+    neither count as review coverage nor mask a slow human response.
+    """
+    return [r for r in (pr.get("reviews") or []) if not is_bot_review(r)]
 
 
 def hit_pr_cap(prs: list) -> bool:
@@ -171,7 +240,7 @@ def signal_review_concentration(prs: list[dict]) -> dict:
     """Whether a single person performs most reviews."""
     counts: Counter = Counter()
     for pr in prs:
-        for review in pr.get("reviews") or []:
+        for review in human_reviews(pr):
             login = (review.get("author") or {}).get("login")
             if login:
                 counts[login] += 1
@@ -197,7 +266,7 @@ def signal_time_to_first_review(prs: list[dict]) -> dict:
         if not created:
             continue
         review_times = [parse_iso(r.get("submittedAt"))
-                        for r in (pr.get("reviews") or [])]
+                        for r in human_reviews(pr)]
         review_times = [t for t in review_times if t]
         if not review_times:
             continue
@@ -228,9 +297,18 @@ def signal_time_to_first_review(prs: list[dict]) -> dict:
     return {"value": round(med, 1), "detail": detail, "severity": band}
 
 
-def signal_stale_prs(prs: list[dict]) -> dict:
-    """Merged PRs that sat open well beyond the norm."""
-    ages: list[tuple[object, float]] = []  # (number, days)
+def signal_stale_prs(prs: list[dict], open_prs: list[dict] | None = None,
+                     now: datetime | None = None) -> dict:
+    """PRs that sat — or are still sitting — open well beyond the norm.
+
+    Two populations: merged PRs that took >STALE_DAYS to land, and currently
+    open non-draft PRs already older than that. The second is the more literal
+    "stale PR"; counting only merged ones would miss the PR nobody is merging.
+    Drafts are excluded — parked on purpose is not stale.
+    """
+    now = as_utc(now) if now else datetime.now(timezone.utc)
+
+    merged_ages: list[tuple[object, float]] = []  # (number, days)
     for pr in prs:
         created = parse_iso(pr.get("createdAt"))
         merged = parse_iso(pr.get("mergedAt"))
@@ -238,16 +316,32 @@ def signal_stale_prs(prs: list[dict]) -> dict:
             continue
         days = (merged - created).total_seconds() / 86400
         if days >= 0:
-            ages.append((pr.get("number"), days))
+            merged_ages.append((pr.get("number"), days))
 
-    if not ages:
-        return {"value": 0, "detail": "no merged PRs with dates in the window",
+    open_ages: list[tuple[object, float]] = []
+    for pr in open_prs or []:
+        if pr.get("isDraft"):
+            continue
+        created = parse_iso(pr.get("createdAt"))
+        if not created:
+            continue
+        days = (now - as_utc(created)).total_seconds() / 86400
+        if days >= 0:
+            open_ages.append((pr.get("number"), days))
+
+    total = len(merged_ages) + len(open_ages)
+    if total == 0:
+        return {"value": 0,
+                "detail": "no merged or open PRs with dates in the window",
                 "severity": "ok"}
 
-    stale = [(n, d) for n, d in ages if d > STALE_DAYS]
-    ratio = len(stale) / len(ages)
-    detail = (f"{len(stale)} of {len(ages)} merged PRs stayed open "
-              f">{STALE_DAYS}d before merge ({ratio:.0%})")
+    stale_merged = [(n, d) for n, d in merged_ages if d > STALE_DAYS]
+    stale_open = [(n, d) for n, d in open_ages if d > STALE_DAYS]
+    stale = stale_merged + stale_open
+    ratio = len(stale) / total
+    detail = (f"{len(stale)} of {total} PRs sat open >{STALE_DAYS}d "
+              f"({ratio:.0%}): {len(stale_merged)} eventually merged, "
+              f"{len(stale_open)} still open")
     if stale:
         oldest = sorted(stale, key=lambda x: -x[1])[:3]
         detail += " — e.g. " + ", ".join(f"#{n} ({d:.0f}d)" for n, d in oldest)
@@ -261,7 +355,7 @@ def signal_silent_merges(prs: list[dict]) -> dict:
         return {"value": 0, "detail": "no merged PRs in the window",
                 "severity": "ok"}
 
-    silent = [pr for pr in prs if not (pr.get("reviews") or [])]
+    silent = [pr for pr in prs if not human_reviews(pr)]
     ratio = len(silent) / len(prs)
     detail = (f"{len(silent)} of {len(prs)} merged PRs had no review "
               f"({ratio:.0%})")
@@ -280,26 +374,31 @@ def main() -> int:
     parser.add_argument("--days", type=int, default=90, help="analysis window")
     args = parser.parse_args()
 
-    since = (
-        datetime.now(timezone.utc) - timedelta(days=args.days)
-    ).date().isoformat()
+    since_dt = datetime.now(timezone.utc) - timedelta(days=args.days)
+    since = since_dt.date().isoformat()
 
     commits = git_log(args.repo, since)
     has_gh = gh_available(args.repo)
-    prs = gh_prs(args.repo) if has_gh else []
+    fetched_prs = gh_prs(args.repo) if has_gh else []
+    open_prs = gh_open_prs(args.repo) if has_gh else []
 
     # Distinct commit authors in the window — a deterministic proxy for team
     # size, used to calibrate the team-size-sensitive signals below.
     contributors = len({c["author"] for c in commits})
 
-    prs_truncated = hit_pr_cap(prs)
+    # gh returns the most recent merged PRs regardless of age; bound the
+    # signals to the same window the git signals use.
+    prs = filter_prs_to_window(fetched_prs, since_dt)
+    window_covered = pr_window_covered(fetched_prs, since_dt)
 
     report = {
         "window_days": args.days,
         "github_data": has_gh,
         "commits_analyzed": len(commits),
+        "prs_fetched": len(fetched_prs),
         "prs_analyzed": len(prs),
-        "prs_truncated": prs_truncated,
+        "open_prs_analyzed": len(open_prs),
+        "pr_window_covered": window_covered,
         "contributors": contributors,
         "signals": {
             "knowledge_silos": damp_for_small_team(
@@ -307,19 +406,20 @@ def main() -> int:
             "review_concentration": damp_for_small_team(
                 signal_review_concentration(prs), contributors),
             "time_to_first_review": signal_time_to_first_review(prs),
-            "stale_prs": signal_stale_prs(prs),
+            "stale_prs": signal_stale_prs(prs, open_prs),
             "silent_merges": damp_for_small_team(
                 signal_silent_merges(prs), contributors),
         },
     }
     if not has_gh:
         report["note"] = "gh unavailable — GitHub PR signals skipped; git-only mode."
-    elif prs_truncated:
+    elif not window_covered:
         report["note"] = (
-            f"PR fetch hit the {PR_FETCH_LIMIT}-PR cap; all PR-based signals "
-            "(review concentration, time-to-first-review, stale PRs, silent "
-            "merges) reflect only the most recent merged PRs, not the full "
-            "history. Narrow --days, or read these ratios as a recent slice."
+            f"PR fetch hit the {PR_FETCH_LIMIT}-PR cap before reaching the "
+            "window start; merged-PR signals (review concentration, "
+            "time-to-first-review, stale PRs, silent merges) cover only the "
+            "most recent part of the window. Narrow --days until the fetch "
+            "reaches the window start, or read these ratios as a recent slice."
         )
 
     print(json.dumps(report, indent=2, ensure_ascii=False))
