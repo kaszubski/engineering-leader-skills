@@ -85,7 +85,7 @@ The skills draw on these frameworks, distilled *for application* in [`foundation
 
 These are *distillations for use*, not reproductions; each one credits and links its source.
 
-## Install
+## Install in Claude Code
 
 ### As a plugin (recommended)
 
@@ -107,9 +107,29 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 `coaching-calibrator` and `retro-facilitator` need no external tools. `pr-review` can read a pasted diff; local branches need `git`, and GitHub PR retrieval needs authenticated `gh`. `repo-xray` needs Python 3.9+ and `git`; authenticated `gh` enables PR signals. Failed, unavailable, incomplete, or empty measurements are reported as `unknown`, never healthy.
 
-## Optional team context
+## Getting started with your team
 
-Copy [the small team-context template](./examples/TEAM-CONTEXT.md) into a target repository as `TEAM-CONTEXT.md` when local ownership, critical paths, accepted tradeoffs, or constraints would improve judgment. Both daily skills retrieve relevant entries selectively. They also work without it and state material uncertainty. Keep its review date current. A [clearly fictional filled example](./examples/TEAM-CONTEXT.fictional.md) shows a possible starting point; it describes no actual team.
+1. Install the skills using the Claude Code instructions above. The rubrics and
+   examples are reusable across teams; installation paths and commands are
+   platform-specific.
+2. Optionally copy [the blank template](./examples/TEAM-CONTEXT.md) into your own
+   project as `TEAM-CONTEXT.md`, or use context you already maintain. Fill only
+   useful facts, their sources, an owner, and a review date. No form is required.
+3. Point the agent to that context when asking for a review or repo x-ray. It
+   retrieves relevant entries selectively. Without supplied context, it uses
+   available repository evidence and asks only for material missing facts;
+   absent documentation is not an unhealthy signal.
+4. Try a [starter evaluation example](./evals/README.md), then a real small
+   change. Review the evidence, proposed action, and any uncertainty before use.
+5. Revisit context and repeat the starter cases when changing a skill or model,
+   recording the actual versions and outcomes.
+
+The [filled example](./examples/TEAM-CONTEXT.fictional.md) and evaluation fixtures
+are public, **fictional teaching material**. They are never live team context and
+should not be auto-loaded as such. Keep your actual context in your own project
+or an appropriately restricted source, not in this public skills collection.
+People-sensitive coaching or performance details belong in restricted material,
+not public examples or evaluation results.
 
 ## Design principles
 
