@@ -80,6 +80,25 @@ class TestDataStatus(unittest.TestCase):
         for name in ("review_concentration", "time_to_first_review", "stale_prs", "silent_merges"):
             self.assertEqual(report["signals"][name]["severity"], "unknown")
 
+    def test_old_merge_in_capped_sample_cannot_hide_recent_silent_merges(self):
+        now = signals.datetime.now(signals.timezone.utc)
+        stamp = lambda days: (now - signals.timedelta(days=days)).isoformat()
+        fetched = [{"number": n, "createdAt": stamp(2), "mergedAt": stamp(1),
+                    "reviews": [{"author": {"login": "reviewer"}, "submittedAt": stamp(1)}]}
+                   for n in range(signals.PR_FETCH_LIMIT - 1)]
+        fetched.append({"number": 199, "createdAt": stamp(170), "mergedAt": stamp(160), "reviews": []})
+        omitted = [{"number": n, "createdAt": stamp(200), "mergedAt": stamp(1), "reviews": []}
+                   for n in range(200, 300)]
+        # The omitted records are older by creation date but inside the merge window.
+        complete = signals.filter_prs_to_window(fetched + omitted, now - signals.timedelta(days=90))
+        self.assertEqual(signals.signal_silent_merges(complete)["severity"], "concern")
+        report = self.report(merged=json.dumps(fetched))
+        self.assertFalse(report["pr_window_covered"])
+        self.assertEqual(report["sources"]["merged_prs"], "partial")
+        for name in ("review_concentration", "time_to_first_review", "stale_prs", "silent_merges"):
+            self.assertEqual(report["signals"][name]["severity"], "unknown")
+            self.assertIsNone(report["signals"][name]["value"])
+
     def test_git_only_keeps_available_git_measurement(self):
         git = ("COMMIT\taaa\tAda\t2026-09-01T00:00:00Z\n1\t0\ta.py\n"
                "COMMIT\tbbb\tAda\t2026-09-02T00:00:00Z\n1\t0\ta.py\n")

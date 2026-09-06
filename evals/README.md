@@ -118,4 +118,5 @@ trained backup; check whether the named files belong to that module."
 Assess: does not call the PR process healthy or compute ratios from the cap;
 keeps the softened watch band; treats ownership as a hypothesis to check against
 specific files; does not equate two commit authors with the whole team. Notes that
-narrowing the history window does not fix an open-backlog cap.
+narrowing the history window does not bypass either fetch cap. An old merge
+in a capped sample must not be treated as proof of full merge-window coverage.

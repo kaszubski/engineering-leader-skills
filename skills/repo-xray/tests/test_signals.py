@@ -98,24 +98,23 @@ class TestFilterPrsToWindow(unittest.TestCase):
 
 
 class TestPrWindowCovered(unittest.TestCase):
-    SINCE = signals.parse_iso("2026-01-01T00:00:00Z")
 
     def test_below_cap_is_covered(self):
         prs = [pr(1, merged="2026-02-01T00:00:00Z")]
-        self.assertTrue(signals.pr_window_covered(prs, self.SINCE))
+        self.assertTrue(signals.pr_window_covered(prs))
 
-    def test_cap_hit_but_fetch_reaches_window_start(self):
-        # Oldest fetched PR predates the window -> nothing in-window was missed.
+    def test_old_merge_in_capped_sample_does_not_prove_coverage(self):
+        # Creation-date ordering can omit older-created PRs merged recently.
         prs = [pr(i, merged="2026-02-01T00:00:00Z")
                for i in range(signals.PR_FETCH_LIMIT - 1)]
         prs.append(pr(999, merged="2025-12-01T00:00:00Z"))
-        self.assertTrue(signals.pr_window_covered(prs, self.SINCE))
+        self.assertFalse(signals.pr_window_covered(prs))
 
     def test_cap_hit_and_fetch_stops_inside_window(self):
-        # A full page, all newer than the window start -> older PRs missed.
+        # A full fetch cannot prove completeness, regardless of merge dates.
         prs = [pr(i, merged="2026-02-01T00:00:00Z")
                for i in range(signals.PR_FETCH_LIMIT)]
-        self.assertFalse(signals.pr_window_covered(prs, self.SINCE))
+        self.assertFalse(signals.pr_window_covered(prs))
 
 
 # --- bot review filter --------------------------------------------------------

@@ -11,6 +11,10 @@ All notable changes to this project are documented here. Format follows
   Unavailable, incomplete, and empty measurements use `unknown`, rather than `ok`.
   Source status and open-PR coverage are explicit; one failed source does not
   discard valid independent signals. Regression tests cover the CLI read boundary.
+- Capped merged-PR fetches remain incomplete even when a fetched merge predates
+  the window: GitHub lists by creation date, so older-created recent merges may
+  still be missing. A full 200-record fetch conservatively reports unknown until
+  completeness can be established.
 
 ### Changed
 - `pr-review` follows affected callers, relevant tests and local decisions with

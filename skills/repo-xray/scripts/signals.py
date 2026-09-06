@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from statistics import median
 
 STALE_DAYS = 14  # a PR open longer than this before merge counts as stale
-PR_FETCH_LIMIT = 200  # gh pr list cap; hitting it means we saw only a recent slice
+PR_FETCH_LIMIT = 200  # a full fetch may omit older-created, recently merged PRs
 
 
 def run(cmd: list[str], cwd: str) -> str | None:
@@ -153,7 +153,7 @@ def as_utc(dt: datetime) -> datetime:
 def filter_prs_to_window(prs: list[dict], since: datetime) -> list[dict]:
     """Keep only PRs merged inside the analysis window.
 
-    `gh pr list` has no --since; it returns the most recent merged PRs
+    `gh pr list` has no --since; it returns the newest-created merged PRs
     regardless of age. Without this filter, a --days 30 run would compute
     every PR-based signal over arbitrarily old history.
     """
@@ -165,19 +165,15 @@ def filter_prs_to_window(prs: list[dict], since: datetime) -> list[dict]:
     return kept
 
 
-def pr_window_covered(fetched: list[dict], since: datetime) -> bool:
-    """Whether the fetched merged-PR slice reaches back past the window start.
+def pr_window_covered(fetched: list[dict]) -> bool:
+    """Whether a complete fetch proves coverage of the requested merge window.
 
-    If the fetch hit its cap *and* the oldest PR we got is still newer than
-    the window start, older in-window PRs exist that we never saw — the
-    PR-based signals then cover only part of the window.
+    gh lists PRs by creation date, not merge date. An old merge in a capped
+    sample cannot rule out older-created PRs merged recently beyond the cap.
+    Conservatively report incomplete even if exactly the limit exists; without
+    pagination metadata, completeness cannot be proved at the cap.
     """
-    if not hit_pr_cap(fetched):
-        return True
-    dates = [d for d in (parse_iso(p.get("mergedAt")) for p in fetched) if d]
-    if not dates:
-        return False
-    return as_utc(min(dates)) <= since
+    return not hit_pr_cap(fetched)
 
 
 def is_bot_review(review: dict) -> bool:
@@ -202,7 +198,7 @@ def hit_pr_cap(prs: list) -> bool:
     """Whether the PR fetch likely truncated — we got a full page of results.
 
     A busy repo can have far more than PR_FETCH_LIMIT merged PRs; when it does,
-    every PR-based ratio is computed on the most recent slice only. The skill
+    every PR-based ratio may omit older-created PRs merged recently. The skill
     must say so rather than present a partial sample as the whole history.
     """
     return len(prs) >= PR_FETCH_LIMIT
@@ -401,7 +397,7 @@ def main() -> int:
     }
     contributors = len({c["author"] for c in commits}) if commits is not None else None
     prs = filter_prs_to_window(fetched_prs or [], since_dt)
-    window_covered = pr_window_covered(fetched_prs, since_dt) if fetched_prs is not None else None
+    window_covered = pr_window_covered(fetched_prs) if fetched_prs is not None else None
     open_covered = not hit_pr_cap(open_prs) if open_prs is not None else None
     if window_covered is False:
         sources["merged_prs"] = "partial"
