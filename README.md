@@ -2,7 +2,7 @@
 
 Claude Code skills for engineering managers and tech leads, by [Matt Kaszubski](https://github.com/kaszubski).
 
-> **`v0.3.0`, small and opinionated by design.** The triggers and rubrics sharpen as they meet real PRs and real teams; that iteration is the point, not a caveat. Issues welcome, especially where a skill misfired.
+> **`v0.4.0`, small and opinionated by design.** The triggers and rubrics sharpen as they meet real PRs and real teams; that iteration is the point, not a caveat. Issues welcome, especially where a skill misfired.
 
 ## What this is
 
