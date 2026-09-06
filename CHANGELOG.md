@@ -6,6 +6,31 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-06
+
+### Fixed
+- `repo-xray` distinguishes failed/unavailable reads from successful empty reads.
+  Unavailable, incomplete, and empty measurements use `unknown`, rather than `ok`.
+  Source status and open-PR coverage are explicit; one failed source does not
+  discard valid independent signals. Regression tests cover the CLI read boundary.
+- Capped merged-PR fetches remain incomplete even when a fetched merge predates
+  the window: GitHub lists by creation date, so older-created recent merges may
+  still be missing. A full 200-record fetch conservatively reports unknown until
+  completeness can be established.
+
+### Changed
+- `pr-review` follows affected callers, relevant tests and local decisions with
+  depth proportional to risk. Blockers require evidence and concrete impact;
+  accepted tradeoffs and personal preferences do not automatically become defects.
+- Report consumers must accept severity `unknown`, nullable counts/coverage on
+  failed reads, and `sources`/`open_prs_covered` fields. `github_data` now means
+  both PR reads succeeded, not merely that authentication succeeded.
+
+### Added
+- Optional team-context template, fictional filled example, and selective retrieval
+  guidance for both daily skills; repeatable behavior evaluation cases and runnable
+  PR fixture repositories (cases authored, not model-scored).
+
 ## [0.3.0] — 2026-07-13
 
 ### Fixed
@@ -101,7 +126,8 @@ sharpen against real PRs and real teams.
   Situational Leadership II, Domain-Driven Design, and Conscious Leadership.
 - **`TEMPLATE.md`** — the shape every skill in the collection follows.
 
-[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/kaszubski/engineering-leader-skills/compare/v0.1.0...v0.2.0

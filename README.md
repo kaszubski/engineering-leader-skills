@@ -2,7 +2,7 @@
 
 Claude Code skills for engineering managers and tech leads, by [Matt Kaszubski](https://github.com/kaszubski).
 
-> **`v0.3.0`, small and opinionated by design.** The triggers and rubrics sharpen as they meet real PRs and real teams; that iteration is the point, not a caveat. Issues welcome, especially where a skill misfired.
+> **`v0.4.0`, small and opinionated by design.** The triggers and rubrics sharpen as they meet real PRs and real teams; that iteration is the point, not a caveat. Issues welcome, especially where a skill misfired.
 
 ## What this is
 
@@ -38,16 +38,12 @@ Runs five signal queries (review concentration, knowledge silos, time-to-first-r
 Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well / Self-check**. Cites `file:line`. Never posts to GitHub; advisory only.
 
 <details>
-<summary>Sample output (real review of a small UX PR)</summary>
+<summary>Sample output (shortened from a real small UX PR review)</summary>
 
 ```
-**Verdict:** Clean batch. Nothing blocking — one bundling note and two polish items.
+**Verdict:** Clean batch. Nothing blocking — one test reliability note.
 
 **Non-blocking** — worth considering, reviewer's call
-- PR bundles three unrelated concerns. Marquee toggle, justify sweep, and arrow
-  glyph swap have nothing in common except "UX walkthrough output." Small enough
-  to hold in your head here, but the pattern degrades fast if a future "Batch N"
-  puts a 50-line behavior change next to silent CSS edits.
 - `e2e/marquee-toggle.spec.ts:50` — fixed `waitForTimeout(700)` after the pause
   click. You used `expect.poll` earlier in the same test. Mirror that pattern —
   the brittle version will flake under CI load.
@@ -89,7 +85,7 @@ The skills draw on these frameworks, distilled *for application* in [`foundation
 
 These are *distillations for use*, not reproductions; each one credits and links its source.
 
-## Install
+## Install in Claude Code
 
 ### As a plugin (recommended)
 
@@ -109,7 +105,31 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 ### Requirements
 
-`pr-review`, `coaching-calibrator`, and `retro-facilitator` have no dependencies. `repo-xray` (with either install method) needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
+`coaching-calibrator` and `retro-facilitator` need no external tools. `pr-review` can read a pasted diff; local branches need `git`, and GitHub PR retrieval needs authenticated `gh`. `repo-xray` needs Python 3.9+ and `git`; authenticated `gh` enables PR signals. Failed, unavailable, incomplete, or empty measurements are reported as `unknown`, never healthy.
+
+## Getting started with your team
+
+1. Install the skills using the Claude Code instructions above. The rubrics and
+   examples are reusable across teams; installation paths and commands are
+   platform-specific.
+2. Optionally copy [the blank template](./examples/TEAM-CONTEXT.md) into your own
+   project as `TEAM-CONTEXT.md`, or use context you already maintain. Fill only
+   useful facts, their sources, an owner, and a review date. No form is required.
+3. Point the agent to that context when asking for a review or repo x-ray. It
+   retrieves relevant entries selectively. Without supplied context, it uses
+   available repository evidence and asks only for material missing facts;
+   absent documentation is not an unhealthy signal.
+4. Try a [starter evaluation example](./evals/README.md), then a real small
+   change. Review the evidence, proposed action, and any uncertainty before use.
+5. Revisit context and repeat the starter cases when changing a skill or model,
+   recording the actual versions and outcomes.
+
+The [filled example](./examples/TEAM-CONTEXT.fictional.md) and evaluation fixtures
+are public, **fictional teaching material**. They are never live team context and
+should not be auto-loaded as such. Keep your actual context in your own project
+or an appropriately restricted source, not in this public skills collection.
+People-sensitive coaching or performance details belong in restricted material,
+not public examples or evaluation results.
 
 ## Design principles
 
@@ -126,7 +146,7 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 python3 -m unittest discover -s skills/repo-xray/tests
 ```
 
-The other skills are prose; their contract is the rubric in each `SKILL.md`. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the bar a new skill has to clear.
+Repeatable [behavioral evaluation cases](./evals/README.md) cover the two daily skills. These are authored scenarios, not a claim that model evaluations have run. The prose contract remains the rubric in each `SKILL.md`. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the bar a new skill has to clear.
 
 ## License
 

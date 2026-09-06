@@ -21,7 +21,7 @@ Before proposing a skill, check it against the collection's design principles:
 
 ## Tests
 
-Skills are mostly prose; their contract is the rubric in each `SKILL.md`. The exception is deterministic code. If your skill ships a script, it ships tests: stdlib `unittest`, zero dependencies, matching `skills/repo-xray/tests/`.
+Skills are mostly prose; their contract is the rubric in each `SKILL.md`. For changes to `pr-review` or `repo-xray`, use the [behavioral evaluation pack](./evals/README.md) and report which cases were actually run, with skill/model configuration and human assessment. Authored cases alone are not evidence of model behavior. Deterministic code has automated tests. If your skill ships a script, it ships tests: stdlib `unittest`, zero dependencies, matching `skills/repo-xray/tests/`.
 
 Run the existing suite:
 

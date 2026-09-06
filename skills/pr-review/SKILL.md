@@ -39,10 +39,11 @@ See [the Radical Candor foundation](https://github.com/kaszubski/engineering-lea
    - A local branch → `git diff <base-branch>...HEAD`.
    - A diff pasted into the conversation → use it directly.
    If none is available, ask which to review.
-2. **Read for intent first.** What is this PR *trying* to do? A review that misreads the goal is noise, so use the PR description and the commit messages.
-3. **Assess the four dimensions** below. Cite a specific `file:line` or code snippet for every finding.
-4. **Draft the review** in the output format.
-5. **Run the Radical Candor self-check** before returning it.
+2. **Read for intent and local context.** Establish the intended behavior and base branch. Read applicable repository instructions, then retrieve only the domain definitions, architectural decisions, and optional context the user points to (or `TEAM-CONTEXT.md` in the target repository) relevant to this change. Follow their links selectively; do not load every document. Never use bundled fictional examples as live team context. If context is absent, proceed from observable code and state any material uncertainty; ask only for missing facts that materially change the review, without requiring a context form. A documented tradeoff is evidence, not automatic immunity from a defect.
+3. **Investigate beyond the diff, proportionate to risk.** Read affected functions and their callers, relevant tests, and nearby implementations before asserting coupling or convention drift. Trace changed behavior through critical paths when the change touches permissions, data integrity, external contracts, or other locally identified risks. For a small low-risk edit, inspect enough context to verify it and stop. Run focused checks when available and useful; distinguish checks actually run from suggested checks.
+4. **Assess the four dimensions** below. Validate each finding against the surrounding code and accepted decisions. A blocking finding needs a specific location, a reachable failure scenario or violated constraint, concrete impact, and a proportionate fix. Do not promote a stylistic preference, speculative risk, or missing context into a defect. If a missing fact prevents a confident conclusion, identify that limitation without inventing a blocker.
+5. **Draft the review** in the output format, prioritizing actual impact. This is a leadership-focused review, not evidence that every correctness or security concern has been audited.
+6. **Run the Radical Candor self-check** before returning it.
 
 ## The four dimensions
 
@@ -66,7 +67,7 @@ Can this PR be reviewed *honestly*?
 - **Mixed concerns** — a refactor + a feature + a bugfix in one PR; each one hides the others.
 - Does the diff tell a coherent story?
 
-If the PR is genuinely too large or too mixed, *that finding is the headline*: recommend splitting it before reviewing the rest in detail.
+If size or mixed concerns prevent a reliable review, explain which behavior cannot be verified and recommend a useful split. Size alone is not a defect; avoid mechanically requesting a split of a coherent, well-supported change.
 
 ### 3. Convention drift
 
@@ -104,6 +105,8 @@ Produce the review as text for the human to use. This skill does **not** post to
 **Done well**
 - <specific and genuine — not filler>
 
+**Validation:** <relevant checks actually run; material unverified behavior, if any>
+
 **Self-check:** <one line — see below>
 ```
 
@@ -115,7 +118,7 @@ Before returning the review, test it against the 2×2:
 
 - **Challenge Directly** — does every blocking item name a *specific* impact and a *concrete* change? Cut "consider maybe", vague unease, and questions that are really hidden assertions.
 - **Care Personally** — is every comment on the *code*, not the coder? Does the framing assume competence and a shared goal?
-- **Not Ruinous Empathy** — is any real defect disguised as a "nit:" or buried in politeness? Promote it to blocking.
+- **Not Ruinous Empathy** — is any real defect disguised as a "nit:" or buried in politeness? Classify it by concrete impact; do not turn every minor defect into a merge blocker.
 - **Not Obnoxious Aggression** — is this an unprioritised pile? Every item must be sorted into blocking or non-blocking.
 - **Proportionate** — when nothing blocks, would you actually raise each non-blocking item out loud with the author? Cut the ones you wouldn't.
 
@@ -125,6 +128,7 @@ State the outcome in the self-check line. If the review fails the gate, fix it b
 
 - Not a linter. Never flag formatting, import order, or anything CI owns.
 - **A clean PR gets a short review.** When nothing blocks, cap non-blocking items at the one or two you'd genuinely raise in person — usually zero or one. Padding a clean PR with polish notes to look thorough is framework theatre, and it trains authors to skim your reviews.
-- One finding, one place: cite `file:line`.
+- One finding, one place: cite `file:line`. Explain the failure scenario and impact for blockers; label optional tradeoffs as non-blocking and omit mere personal preferences.
+- Accepted architectural exceptions should not be re-litigated without evidence that this change violates their limits or creates a new problem.
 - Advisory only: produce the review; never post it or merge.
 - A clean PR is a valid result. Don't manufacture findings to look thorough.
