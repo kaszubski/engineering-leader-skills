@@ -67,7 +67,7 @@ def damp_for_small_team(sig: dict, contributors: int) -> dict:
     watch→ok) and say we did. With 0 contributors we don't know the team size
     (no git history read), so we leave the signal untouched.
     """
-    if not 1 <= contributors <= 2 or sig["severity"] == "ok":
+    if not 1 <= contributors <= 2 or sig["severity"] not in ("watch", "concern"):
         return sig
     softened = {"concern": "watch", "watch": "ok"}[sig["severity"]]
     out = dict(sig)
@@ -79,7 +79,7 @@ def damp_for_small_team(sig: dict, contributors: int) -> dict:
 
 # --- raw data ---------------------------------------------------------------
 
-def git_log(repo: str, since: str) -> list[dict]:
+def git_log(repo: str, since: str) -> list[dict] | None:
     """Parse `git log --numstat` since a date into commit records.
 
     Each record: {sha, author, date, files: [path, ...]}.
@@ -91,7 +91,7 @@ def git_log(repo: str, since: str) -> list[dict]:
         repo,
     )
     if raw is None:
-        return []
+        return None
     commits: list[dict] = []
     current: dict | None = None
     for line in raw.splitlines():
@@ -110,36 +110,39 @@ def git_log(repo: str, since: str) -> list[dict]:
     return commits
 
 
-def gh_prs(repo: str) -> list[dict]:
-    """Fetch merged PRs (with review data) via the gh CLI."""
-    raw = run(
-        ["gh", "pr", "list", "--state", "merged", "--limit", str(PR_FETCH_LIMIT),
-         "--json", "number,author,createdAt,mergedAt,reviews"],
-        repo,
-    )
+def fetch_prs(repo: str, state: str) -> list[dict] | None:
+    """Return validated records, [] for a successful empty read, None on failure."""
+    fields = ("number,author,createdAt,mergedAt,reviews" if state == "merged"
+              else "number,createdAt,isDraft")
+    raw = run(["gh", "pr", "list", "--state", state, "--limit", str(PR_FETCH_LIMIT),
+               "--json", fields], repo)
     if raw is None:
-        return []
+        return None
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        return []
-    return data if isinstance(data, list) else []
+        return None
+    if not isinstance(data, list):
+        return None
+    for pr in data:
+        if not isinstance(pr, dict) or not parse_iso(pr.get("createdAt")):
+            return None
+        if state == "merged":
+            if not parse_iso(pr.get("mergedAt")) or not isinstance(pr.get("reviews"), list):
+                return None
+            if any(not isinstance(r, dict) for r in pr["reviews"]):
+                return None
+        elif not isinstance(pr.get("isDraft"), bool):
+            return None
+    return data
 
 
-def gh_open_prs(repo: str) -> list[dict]:
-    """Fetch currently-open PRs via the gh CLI (for the stale-PR signal)."""
-    raw = run(
-        ["gh", "pr", "list", "--state", "open", "--limit", str(PR_FETCH_LIMIT),
-         "--json", "number,createdAt,isDraft"],
-        repo,
-    )
-    if raw is None:
-        return []
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        return []
-    return data if isinstance(data, list) else []
+def gh_prs(repo: str) -> list[dict] | None:
+    return fetch_prs(repo, "merged")
+
+
+def gh_open_prs(repo: str) -> list[dict] | None:
+    return fetch_prs(repo, "open")
 
 
 def as_utc(dt: datetime) -> datetime:
@@ -222,7 +225,7 @@ def signal_knowledge_silos(commits: list[dict]) -> dict:
     if not active:
         return {"value": 0,
                 "detail": "no file changed twice or more in the window",
-                "severity": "ok"}
+                "severity": "unknown"}
 
     silos = [p for p in active if len(authors[p]) == 1]
     ratio = len(silos) / len(active)
@@ -248,7 +251,7 @@ def signal_review_concentration(prs: list[dict]) -> dict:
     total = sum(counts.values())
     if total == 0:
         return {"value": 0, "detail": "no reviews recorded in the window",
-                "severity": "ok"}
+                "severity": "unknown"}
 
     top_login, top_count = counts.most_common(1)[0]
     share = top_count / total
@@ -276,7 +279,7 @@ def signal_time_to_first_review(prs: list[dict]) -> dict:
 
     if not samples:
         return {"value": None, "detail": "no reviewed PRs in the window",
-                "severity": "ok"}
+                "severity": "unknown"}
 
     hours_list = [h for _, h in samples]
     med = median(hours_list)
@@ -333,7 +336,7 @@ def signal_stale_prs(prs: list[dict], open_prs: list[dict] | None = None,
     if total == 0:
         return {"value": 0,
                 "detail": "no merged or open PRs with dates in the window",
-                "severity": "ok"}
+                "severity": "unknown"}
 
     stale_merged = [(n, d) for n, d in merged_ages if d > STALE_DAYS]
     stale_open = [(n, d) for n, d in open_ages if d > STALE_DAYS]
@@ -353,7 +356,7 @@ def signal_silent_merges(prs: list[dict]) -> dict:
     """Merged PRs that had no review at all."""
     if not prs:
         return {"value": 0, "detail": "no merged PRs in the window",
-                "severity": "ok"}
+                "severity": "unknown"}
 
     silent = [pr for pr in prs if not human_reviews(pr)]
     ratio = len(silent) / len(prs)
@@ -373,54 +376,82 @@ def main() -> int:
     parser.add_argument("--repo", default=".", help="path to the git repo")
     parser.add_argument("--days", type=int, default=90, help="analysis window")
     args = parser.parse_args()
+    if args.days <= 0:
+        parser.error("--days must be positive")
 
     since_dt = datetime.now(timezone.utc) - timedelta(days=args.days)
     since = since_dt.date().isoformat()
 
     commits = git_log(args.repo, since)
     has_gh = gh_available(args.repo)
-    fetched_prs = gh_prs(args.repo) if has_gh else []
-    open_prs = gh_open_prs(args.repo) if has_gh else []
+    fetched_prs = gh_prs(args.repo) if has_gh else None
+    open_prs = gh_open_prs(args.repo) if has_gh else None
 
-    # Distinct commit authors in the window — a deterministic proxy for team
-    # size, used to calibrate the team-size-sensitive signals below.
-    contributors = len({c["author"] for c in commits})
+    def source_status(records, available=True):
+        if not available:
+            return "unavailable"
+        if records is None:
+            return "error"
+        return "ok" if records else "empty"
 
-    # gh returns the most recent merged PRs regardless of age; bound the
-    # signals to the same window the git signals use.
-    prs = filter_prs_to_window(fetched_prs, since_dt)
-    window_covered = pr_window_covered(fetched_prs, since_dt)
+    sources = {
+        "git": source_status(commits),
+        "merged_prs": source_status(fetched_prs, has_gh),
+        "open_prs": source_status(open_prs, has_gh),
+    }
+    contributors = len({c["author"] for c in commits}) if commits is not None else None
+    prs = filter_prs_to_window(fetched_prs or [], since_dt)
+    window_covered = pr_window_covered(fetched_prs, since_dt) if fetched_prs is not None else None
+    open_covered = not hit_pr_cap(open_prs) if open_prs is not None else None
+    if window_covered is False:
+        sources["merged_prs"] = "partial"
+    if open_covered is False:
+        sources["open_prs"] = "partial"
+
+    measurements = {
+        "knowledge_silos": damp_for_small_team(
+            signal_knowledge_silos(commits or []), contributors or 0),
+        "review_concentration": damp_for_small_team(
+            signal_review_concentration(prs), contributors or 0),
+        "time_to_first_review": signal_time_to_first_review(prs),
+        "stale_prs": signal_stale_prs(prs, open_prs),
+        "silent_merges": damp_for_small_team(
+            signal_silent_merges(prs), contributors or 0),
+    }
+    dependencies = {
+        "knowledge_silos": ("git",),
+        "review_concentration": ("merged_prs",),
+        "time_to_first_review": ("merged_prs",),
+        "stale_prs": ("merged_prs", "open_prs"),
+        "silent_merges": ("merged_prs",),
+    }
+    for name, required in dependencies.items():
+        incomplete = [f"{source}: {sources[source]}" for source in required
+                      if sources[source] not in ("ok", "empty")]
+        if incomplete:
+            measurements[name] = {
+                "value": None, "severity": "unknown",
+                "detail": "Measurement unavailable or incomplete — " + ", ".join(incomplete),
+            }
 
     report = {
         "window_days": args.days,
-        "github_data": has_gh,
-        "commits_analyzed": len(commits),
-        "prs_fetched": len(fetched_prs),
-        "prs_analyzed": len(prs),
-        "open_prs_analyzed": len(open_prs),
+        "github_data": fetched_prs is not None and open_prs is not None,
+        "sources": sources,
+        "commits_analyzed": len(commits) if commits is not None else None,
+        "prs_fetched": len(fetched_prs) if fetched_prs is not None else None,
+        "prs_analyzed": len(prs) if fetched_prs is not None else None,
+        "open_prs_analyzed": len(open_prs) if open_prs is not None else None,
         "pr_window_covered": window_covered,
+        "open_prs_covered": open_covered,
         "contributors": contributors,
-        "signals": {
-            "knowledge_silos": damp_for_small_team(
-                signal_knowledge_silos(commits), contributors),
-            "review_concentration": damp_for_small_team(
-                signal_review_concentration(prs), contributors),
-            "time_to_first_review": signal_time_to_first_review(prs),
-            "stale_prs": signal_stale_prs(prs, open_prs),
-            "silent_merges": damp_for_small_team(
-                signal_silent_merges(prs), contributors),
-        },
+        "signals": measurements,
     }
-    if not has_gh:
-        report["note"] = "gh unavailable — GitHub PR signals skipped; git-only mode."
-    elif not window_covered:
-        report["note"] = (
-            f"PR fetch hit the {PR_FETCH_LIMIT}-PR cap before reaching the "
-            "window start; merged-PR signals (review concentration, "
-            "time-to-first-review, stale PRs, silent merges) cover only the "
-            "most recent part of the window. Narrow --days until the fetch "
-            "reaches the window start, or read these ratios as a recent slice."
-        )
+    notes = [f"{source}: {status}" for source, status in sources.items() if status != "ok"]
+    if notes:
+        report["note"] = ("Data limits — " + "; ".join(notes)
+                          + ". Unknown is not healthy. Check access/read errors; a partial "
+                          "source hit the fetch cap. Empty means a successful read with no records.")
 
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

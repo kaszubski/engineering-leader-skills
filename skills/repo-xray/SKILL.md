@@ -29,13 +29,14 @@ Reviewing a single pull request: that's `pr-review`. repo-xray reads *aggregate*
    `python3 <skill-scripts-dir>/signals.py --repo <target-repo> --days <N>`
    `--repo` is the repository being analyzed (usually the user's current project), not where the script lives.
 2. **Do not recompute anything.** All counting lives in the script, because LLMs miscount. Read its JSON output; never re-derive the numbers.
-3. **Narrate** the JSON into a health note.
+3. **Check data quality before interpretation.** Read `sources`, coverage flags, sample counts, and `note`. Preserve `unknown` severities: failed, unavailable, incomplete, or empty measurements are not healthy results. `github_data` means both PR reads succeeded, not that all samples are complete.
+4. **Retrieve relevant team context, then narrate.** If the target repo has `TEAM-CONTEXT.md`, read only entries relevant to the signals (ownership, critical paths, accepted tradeoffs, constraints, review date); follow linked decisions selectively. Otherwise use the observed data and explicitly label explanations as hypotheses. Commit authors are a proxy for contributors, not a verified team roster. Metrics alone do not establish causes or individual performance.
 
 Requires Python 3 and `git`. `gh` is optional; without it, GitHub PR signals are skipped and the script runs git-only.
 
 ## The signals
 
-Knowledge silos · review concentration · time-to-first-review (and its drift) · stale PRs · silent merges. Each carries a severity: `ok` / `watch` / `concern`.
+Knowledge silos · review concentration · time-to-first-review (and its drift) · stale PRs · silent merges. Each carries a severity: `ok` / `watch` / `concern` / `unknown`. `unknown` means there is no trustworthy measurement to grade, including a successful read with no eligible samples.
 
 Three measurement choices worth knowing when narrating: PR signals are bounded to the same `--days` window as the git signals; *stale PRs* counts both merged PRs that took too long to land and currently-open non-draft PRs already older than the threshold; and bot reviews (dependabot, CI apps) never count as review — a merge approved only by a bot is a silent merge.
 
@@ -44,10 +45,12 @@ Three measurement choices worth knowing when narrating: PR signals are bounded t
 ## Output
 
 - A short **health note** first: plain English, calibrated, connecting signals to each other.
-- Then a per-signal table with the raw numbers and severity.
+- Then a per-signal table with the raw numbers and severity; render null values as unavailable, never zero.
+- When action is warranted, propose one proportionate next check or experiment, separating the observed signal from the explanation to validate. Do not force an action from unknown data beyond resolving its limits.
 
 ## Rules
 
 - **Calibration over alarm.** A health tool that cries wolf gets uninstalled. Do not inflate `watch` into `concern`.
 - All numbers come from the script. The model narrates; it never counts.
-- **Honour the sample's limits.** If `pr_window_covered` is `false`, the PR fetch hit its cap before reaching back to the window start, and every merged-PR signal reflects only the most recent slice of the window. Say so up front in the health note, and don't present those ratios as the full window. This matters most on large, busy repos.
+- **Honour the sample's limits.** `sources` distinguishes `ok`, `empty`, `error`, `unavailable`, and `partial`. Coverage flags are null when the source could not be read. A fetch cap can make merged or open data partial; dependent signals then return `unknown`. State the limitation up front. Narrowing `--days` can help merged history, but does not fix the cap on the current open backlog.
+- **Name the populations.** Merged PRs belong to the requested merge-date window; open PRs are a snapshot of the current non-draft backlog, including older work. Time-to-first-review covers reviewed merged PRs only. Do not describe these as all work or all waiting time.

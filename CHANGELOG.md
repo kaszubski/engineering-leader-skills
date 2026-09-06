@@ -6,6 +6,25 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `repo-xray` distinguishes failed/unavailable reads from successful empty reads.
+  Unavailable, incomplete, and empty measurements use `unknown`, rather than `ok`.
+  Source status and open-PR coverage are explicit; one failed source does not
+  discard valid independent signals. Regression tests cover the CLI read boundary.
+
+### Changed
+- `pr-review` follows affected callers, relevant tests and local decisions with
+  depth proportional to risk. Blockers require evidence and concrete impact;
+  accepted tradeoffs and personal preferences do not automatically become defects.
+- Report consumers must accept severity `unknown`, nullable counts/coverage on
+  failed reads, and `sources`/`open_prs_covered` fields. `github_data` now means
+  both PR reads succeeded, not merely that authentication succeeded.
+
+### Added
+- Optional team-context template, fictional filled example, and selective retrieval
+  guidance for both daily skills; repeatable behavior evaluation cases and runnable
+  PR fixture repositories (cases authored, not model-scored).
+
 ## [0.3.0] — 2026-07-13
 
 ### Fixed

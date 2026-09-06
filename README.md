@@ -38,16 +38,12 @@ Runs five signal queries (review concentration, knowledge silos, time-to-first-r
 Returns a Radical Candor review: **Verdict / Blocking / Non-blocking / Done well / Self-check**. Cites `file:line`. Never posts to GitHub; advisory only.
 
 <details>
-<summary>Sample output (real review of a small UX PR)</summary>
+<summary>Sample output (shortened from a real small UX PR review)</summary>
 
 ```
-**Verdict:** Clean batch. Nothing blocking — one bundling note and two polish items.
+**Verdict:** Clean batch. Nothing blocking — one test reliability note.
 
 **Non-blocking** — worth considering, reviewer's call
-- PR bundles three unrelated concerns. Marquee toggle, justify sweep, and arrow
-  glyph swap have nothing in common except "UX walkthrough output." Small enough
-  to hold in your head here, but the pattern degrades fast if a future "Batch N"
-  puts a 50-line behavior change next to silent CSS edits.
 - `e2e/marquee-toggle.spec.ts:50` — fixed `waitForTimeout(700)` after the pause
   click. You used `expect.poll` earlier in the same test. Mirror that pattern —
   the brittle version will flake under CI load.
@@ -109,7 +105,11 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 ### Requirements
 
-`pr-review`, `coaching-calibrator`, and `retro-facilitator` have no dependencies. `repo-xray` (with either install method) needs Python 3, `git`, and the GitHub CLI (`gh`) on your PATH.
+`coaching-calibrator` and `retro-facilitator` need no external tools. `pr-review` can read a pasted diff; local branches need `git`, and GitHub PR retrieval needs authenticated `gh`. `repo-xray` needs Python 3.9+ and `git`; authenticated `gh` enables PR signals. Failed, unavailable, incomplete, or empty measurements are reported as `unknown`, never healthy.
+
+## Optional team context
+
+Copy [the small team-context template](./examples/TEAM-CONTEXT.md) into a target repository as `TEAM-CONTEXT.md` when local ownership, critical paths, accepted tradeoffs, or constraints would improve judgment. Both daily skills retrieve relevant entries selectively. They also work without it and state material uncertainty. Keep its review date current. A [clearly fictional filled example](./examples/TEAM-CONTEXT.fictional.md) shows a possible starting point; it describes no actual team.
 
 ## Design principles
 
@@ -126,7 +126,7 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 python3 -m unittest discover -s skills/repo-xray/tests
 ```
 
-The other skills are prose; their contract is the rubric in each `SKILL.md`. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the bar a new skill has to clear.
+Repeatable [behavioral evaluation cases](./evals/README.md) cover the two daily skills. These are authored scenarios, not a claim that model evaluations have run. The prose contract remains the rubric in each `SKILL.md`. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the bar a new skill has to clear.
 
 ## License
 

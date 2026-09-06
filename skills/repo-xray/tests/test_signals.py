@@ -162,7 +162,7 @@ class TestKnowledgeSilos(unittest.TestCase):
     def test_empty(self):
         out = signals.signal_knowledge_silos([])
         self.assertEqual(out["value"], 0)
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_single_touch_files_are_not_active(self):
         # A file touched only once is excluded — needs >= 2 touches to count.
@@ -203,7 +203,7 @@ class TestReviewConcentration(unittest.TestCase):
     def test_no_reviews(self):
         out = signals.signal_review_concentration([pr(1)])
         self.assertEqual(out["value"], 0)
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_one_reviewer_dominates(self):
         prs = [
@@ -228,7 +228,7 @@ class TestTimeToFirstReview(unittest.TestCase):
     def test_no_reviewed_prs(self):
         out = signals.signal_time_to_first_review([pr(1, created="2026-01-01T00:00:00Z")])
         self.assertIsNone(out["value"])
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_uses_earliest_review(self):
         prs = [pr(1, created="2026-01-01T00:00:00Z", reviews=[
@@ -262,7 +262,7 @@ class TestStalePrs(unittest.TestCase):
     def test_no_dated_prs(self):
         out = signals.signal_stale_prs([pr(1)])
         self.assertEqual(out["value"], 0)
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_stale_threshold(self):
         prs = [
@@ -296,7 +296,7 @@ class TestStalePrs(unittest.TestCase):
                      "isDraft": True}]  # parked on purpose
         out = signals.signal_stale_prs([], open_prs, now=self.NOW)
         self.assertEqual(out["value"], 0)
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_fresh_open_pr_counts_in_denominator(self):
         merged = [pr(1, created="2026-01-01T00:00:00Z",
@@ -315,7 +315,7 @@ class TestSilentMerges(unittest.TestCase):
     def test_no_prs(self):
         out = signals.signal_silent_merges([])
         self.assertEqual(out["value"], 0)
-        self.assertEqual(out["severity"], "ok")
+        self.assertEqual(out["severity"], "unknown")
 
     def test_silent_ratio(self):
         prs = [
