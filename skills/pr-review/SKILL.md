@@ -41,8 +41,9 @@ See [the Radical Candor foundation](https://github.com/kaszubski/engineering-lea
    If none is available, ask which to review.
 2. **Read for intent first.** What is this PR *trying* to do? A review that misreads the goal is noise, so use the PR description and the commit messages.
 3. **Assess the four dimensions** below. Cite a specific `file:line` or code snippet for every finding.
-4. **Draft the review** in the output format.
-5. **Run the Radical Candor self-check** before returning it.
+4. **Verify each blocking finding.** Re-read the cited `file:line` and its enclosing function in the actual file, not just the diff hunk — confirm the defect is real, not already guarded elsewhere, and not a misreading of the change. Drop or demote anything you can't confirm against the code as written.
+5. **Draft the review** in the output format.
+6. **Run the Radical Candor self-check** before returning it.
 
 ## The four dimensions
 
@@ -126,5 +127,6 @@ State the outcome in the self-check line. If the review fails the gate, fix it b
 - Not a linter. Never flag formatting, import order, or anything CI owns.
 - **A clean PR gets a short review.** When nothing blocks, cap non-blocking items at the one or two you'd genuinely raise in person — usually zero or one. Padding a clean PR with polish notes to look thorough is framework theatre, and it trains authors to skim your reviews.
 - One finding, one place: cite `file:line`.
+- Verify before you cite. A `file:line` you haven't reread against the actual code as written doesn't go in the review.
 - Advisory only: produce the review; never post it or merge.
 - A clean PR is a valid result. Don't manufacture findings to look thorough.

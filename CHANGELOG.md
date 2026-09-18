@@ -6,6 +6,12 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **`pr-review` verifies before it cites.** A new step re-reads each blocking
+  finding's `file:line` and enclosing function against the actual code before
+  drafting the review, dropping or demoting anything that doesn't hold up —
+  guards against a hallucinated citation or a stale claim reaching the human.
+
 ## [0.3.0] — 2026-07-13
 
 ### Fixed
