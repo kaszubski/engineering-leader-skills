@@ -105,7 +105,7 @@ cp -r engineering-leader-skills/skills/* ~/.claude/skills/
 
 ### Requirements
 
-`coaching-calibrator` and `retro-facilitator` need no external tools. `pr-review` can read a pasted diff; local branches need `git`, and GitHub PR retrieval needs authenticated `gh`. `repo-xray` needs Python 3.9+ and `git`; authenticated `gh` enables PR signals. Failed, unavailable, incomplete, or empty measurements are reported as `unknown`, never healthy.
+`coaching-calibrator` and `retro-facilitator` need no external tools. `pr-review` can read a pasted diff; local branches need `git`, and GitHub PR retrieval needs authenticated `gh`. `repo-xray` needs Python 3.9+ and `git`; authenticated `gh` enables PR signals. Failed, unavailable, incomplete, or empty measurements are reported as `unknown`, never healthy. Installed as a plugin, a session-start hook checks once for Python 3 and `git` and warns if either is missing.
 
 ## Getting started with your team
 
