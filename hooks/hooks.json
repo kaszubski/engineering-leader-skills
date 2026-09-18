@@ -1,0 +1,15 @@
+{
+  "description": "One-time check that repo-xray's runtime dependencies (python3, git) are on PATH.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/check-repo-xray-deps.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

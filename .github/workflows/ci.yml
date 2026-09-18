@@ -34,3 +34,9 @@ jobs:
         run: |
           python -m json.tool .claude-plugin/plugin.json > /dev/null
           python -m json.tool .claude-plugin/marketplace.json > /dev/null
+          python -m json.tool hooks/hooks.json > /dev/null
+      - name: Smoke-run the session-start dependency check
+        # Runner always has python3/git, so this exercises the silent,
+        # exit-0 path; the "missing dependency" branches are covered by
+        # manual PATH-stripping, not CI.
+        run: sh hooks/check-repo-xray-deps.sh

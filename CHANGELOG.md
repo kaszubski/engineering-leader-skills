@@ -6,6 +6,12 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Added
+- **A session-start hook checks `repo-xray`'s runtime dependencies.** Installed
+  as a plugin, the collection now warns once at session start if `python3` or
+  `git` is missing from `PATH`, rather than letting the skill fail mid-run.
+  Silent when both are present; the other three skills are unaffected.
+
 ## [0.4.0] — 2026-09-06
 
 ### Fixed
